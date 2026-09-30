@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="ru" id="htmlRoot">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="pageTitle">Генератор аквариумов для LightBurn</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: sans-serif;
+            background: #1e1e1e;
+            color: #f0f0f0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+        #sidebar {
+            width: 340px;
+            background: #252526;
+            padding: 20px;
+            box-sizing: border-box;
+            border-right: 1px solid #333;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            overflow-y: auto;
+            z-index: 10;
+        }
+        html[dir="rtl"] #sidebar {
+            border-right: none;
+            border-left: 1px solid #333;
+        }
+        html[dir="rtl"] input, html[dir="rtl"] select {
+            text-align: right;
+        }
+ 
+        .lang-switcher {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 5px;
+        }
+        .lang-btn {
+            flex: 1;
+            background: #3c3c3c;
+            border: 1px solid #555;
+            color: #fff;
+            padding: 6px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: bold;
+            margin-top: 0;
+        }
+        .lang-btn.active {
+            background: #0e639c;
+            border-color: #1177bb;
+        }
+ 
+        h2 { font-size: 18px; margin-top: 0; color: #4ec9b0; }
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        label { font-size: 13px; color: #bbb; }
+        input, select {
+            background: #3c3c3c;
+            border: 1px solid #555;
+            color: #fff;
+            padding: 8px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        button {
+            background: #0e639c;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        button:hover { background: #1177bb; }
+        
+        /* Стили для блока кнопок в ряд */
+        .button-group {
+            display: flex;
+            gap: 10px;
+        }
+        .button-group button {
+            flex: 1;
+        }
+        #btn-share {
+            background: #2b9348;
+        }
+        #btn-share:hover {
+            background: #40916c;
+        }
+
+        #viewer {
+            flex-grow: 1;
+            position: relative;
+        }
+        #info-hint {
+            position: absolute;
+            bottom: 15px;
+            right: 15px;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #888;
+            pointer-events: none;
+        }
+        html[dir="rtl"] #info-hint {
+            right: auto;
+            left: 15px;
+        }
+
+        /* Мобильная адаптация */
+        /* Адаптивность для мобильных устройств (ширина экрана до 768px) */
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column; /* Меняем направление флекс-контейнера на колонку */
+            }
+            
+            #sidebar {
+                width: 100%;           /* Панель занимает всю ширину экрана */
+                max-height: 40vh;      /* Ограничиваем высоту панели, чтобы оставалось место для 3D-сцены */
+                border-right: none;    
+                border-bottom: 1px solid #333; /* Граница снизу вместо правой */
+            }
+            
+            #viewer {
+                width: 100%;
+                flex-grow: 1;          /* Канвас заполняет всё оставшееся пространство снизу */
+            }
+        }
+
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+</head>
+<body>
+ 
+    <div id="sidebar">
+        <div class="lang-switcher">
+            <button class="lang-btn" id="btn-ru" onclick="setLanguage('ru')">РУС</button>
+            <button class="lang-btn" id="btn-en" onclick="setLanguage('en')">ENG</button>
+            <button class="lang-btn" id="btn-he" onclick="setLanguage('he')">עברית</button>
+        </div>
+ 
+        <h2 id="ui-title">Параметры аквариума</h2>
+ 
+        <div class="control-group">
+            <label id="lbl-length">Длина (mm):</label>
+            <input type="number" id="length" value="300" min="10">
+        </div>
+        <div class="control-group">
+            <label id="lbl-width">Ширина (mm):</label>
+            <input type="number" id="width" value="250" min="10">
+        </div>
+        <div class="control-group">
+            <label id="lbl-height">Высота (mm):</label>
+            <input type="number" id="height" value="200" min="10">
+        </div>
+        <div class="control-group">
+            <label id="lbl-thickness">Толщина стенок (mm):</label>
+            <input type="number" id="thickness" value="3" min="1" max = "20" step="1">
+        </div>
+ 
+        <h2 id="ui-insert-title" style="margin-top: 10px;">Внутренняя подложка</h2>
+ 
+        <div class="control-group">
+            <label id="lbl-insert-mat">Материал подложки:</label>
+            <select id="insertMaterial">
+                <option value="black" id="opt-black">Чёрный</option>
+                <option value="mirror" id="opt-mirror">Зеркальный</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label id="lbl-insert-thick">Толщина подложки (mm):</label>
+            <input type="number" id="insertThickness" value="3" min="1" max = "20" step="1">
+        </div>
+        <div class="control-group">
+            <label id="lbl-hole-w">Ширина отверстия в подложке (0 - без дырки):</label>
+            <input type="number" id="holeW" value="200" min="0">
+        </div>
+        <div class="control-group">
+            <label id="lbl-hole-h">Длина отверстия в подложке (0 - без дырки):</label>
+            <input type="number" id="holeH" value="150" min="0">
+        </div>
+ 
+        <!-- Блок кнопок сохранения и отправки -->
+        <div class="button-group">
+            <button id="btn-export" onclick="exportToLBRN2()">Сохранить</button>
+            <button id="btn-share" onclick="shareToSocial()">Поделиться</button>
+        </div>
+    </div>
+ 
+    <div id="viewer">
+        <div id="info-hint">Вращение: ЛКМ | Панорама: ПКМ | Зум: Колесико</div>
+    </div>
+ 
+<script>
+    const dict = {
+        ru: {
+            title: "Генератор аквариумов для LightBurn",
+            header: "Параметры аквариума",
+            insertHeader: "Внутренняя подложка",
+            width: "Длина (mm):",
+            length: "Ширина (mm):",
+            height: "Высота (mm):",
+            thickness: "Толщина стенок (mm):",
+            insertMat: "Материал подложки:",
+            optMirror: "Зеркальный",
+            optBlack: "Чёрный",
+            insertThick: "Толщина подложки (mm):",
+            holeW: "Ширина отверстия в подложке (0 - без дырки):",
+            holeH: "Длина отверстия в подложке (0 - без дырки):",
+            export: "Сохранить",
+            share: "Поделиться",
+            hint: "Вращение: ЛКМ | Панорама: ПКМ | Зум: Колесико",
+            lblL: "Длина",
+            lblW: "Ширина",
+            lblH: "Высота",
+            lblT: "Толщина",
+            material: "прозрачный акрил",
+            materialBottom: "чёрный акрил",
+            materialMirror: "зеркальный акрил",
+            materialAlign: "выравнивание",
+            shareMessage: "Чертёж аквариума для лазерной резки",
+            shareAlert: "Шеринг отклонен или заблокирован, запускаем скачивание..."
+        },
+        en: {
+            title: "Aquarium Generator for LightBurn",
+            header: "Aquarium Parameters",
+            insertHeader: "Inner Insert",
+            width: "Length (mm):",
+            length: "Width (mm):",
+            height: "High (mm):",
+            thickness: "Wall thickness (mm):",
+            insertMat: "Insert material:",
+            optMirror: "Mirror",
+            optBlack: "Black",
+            insertThick: "Insert thickness (mm):",
+            holeW: "Insert hole width (0 - no hole):",
+            holeH: "Insert hole length (0 - no hole):",
+            export: "Save",
+            share: "Share",
+            hint: "Rotate: LMB | Pan: RMB | Zoom: Wheel",
+            lblL: "Length",
+            lblW: "Width",
+            lblH: "High",
+            lblT: "Thickness",
+            material: "transparent acrylic",
+            materialBottom: "black acrylic",
+            materialMirror: "mirror acrylic",
+            materialAlign: "align",
+            shareMessage: "Aquarium drawing for laser cutting",
+            shareAlert: "Sharing has been rejected or blocked, starting the download..."
+        },
+        he: {
+            title: "מחולל אקווריומים ל-LightBurn",
+            header: "פרמטרי אקווריום",
+            insertHeader: "תוספת פנימית",
+            width: "אורך (mm):",
+            length: "רוחב (mm):",
+            height: "גובה (mm):",
+            thickness: "עובי דפנות (mm):",
+            insertMat: "חומר משטח פנימי:",
+            optMirror: "מראה",
+            optBlack: "שחור",
+            insertThick: "עובי משטח פנימי (mm):",
+            holeW: "רוחב חור במשטח (0 - ללא חור):",
+            holeH: "אורך חור במשטח (0 - ללא חור):",
+            export: "שמור",
+            share: "שתף",
+            hint: "סיבוב: לחצן שמאלי | פנומה: לחצן ימני | זום: גלגלת",
+            lblL: "אורך",
+            lblW: "רוחב",
+            lblH: "גובה",
+            lblT: "עובי",
+            material: "אקריליק שקוף",
+            materialBottom: "אקריליק שחור",
+            materialMirror: "אקריליק מראה",
+            materialAlign: "יישור",
+            shareMessage: "ציור אקווריום לחיתוך לייזר",
+            shareAlert: "...השיתוף נדחה או חסום, הפעל את ההורדה"
+        }
+    };
+ 
+    let currentLang = localStorage.getItem('aquarium_lang') || 'ru';
+ 
+    function setLanguage(lang) {
+        currentLang = lang;
+        localStorage.setItem('aquarium_lang', lang);
+ 
+        const htmlRoot = document.getElementById('htmlRoot');
+        if (lang === 'he') {
+            htmlRoot.setAttribute('dir', 'rtl');
+        } else {
+            htmlRoot.setAttribute('dir', 'ltr');
+        }
+ 
+        document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
+        const btnElem = document.getElementById(`btn-${lang}`);
+        if (btnElem) btnElem.classList.add('active');
+ 
+        const t = dict[lang];
+        document.getElementById('pageTitle').innerText = t.title;
+        document.getElementById('ui-title').innerText = t.header;
+        document.getElementById('ui-insert-title').innerText = t.insertHeader;
+        document.getElementById('lbl-length').innerText = t.length;
+        document.getElementById('lbl-width').innerText = t.width;
+        document.getElementById('lbl-height').innerText = t.height;
+        document.getElementById('lbl-thickness').innerText = t.thickness;
+        document.getElementById('lbl-insert-mat').innerText = t.insertMat;
+        document.getElementById('opt-mirror').innerText = t.optMirror;
+        document.getElementById('opt-black').innerText = t.optBlack;
+        document.getElementById('lbl-insert-thick').innerText = t.insertThick;
+        document.getElementById('lbl-hole-w').innerText = t.holeW;
+        document.getElementById('lbl-hole-h').innerText = t.holeH;
+        document.getElementById('btn-export').innerText = t.export;
+        document.getElementById('btn-share').innerText = t.share;
+        document.getElementById('info-hint').innerText = t.hint;
+ 
+        if (typeof boxGroup !== 'undefined' && boxGroup) {
+            updateScene();
+        }
+    }
+ 
+    let scene, camera, renderer, controls;
+    let boxGroup;
+    let autoRotate = true;
+ 
+    window.addEventListener('DOMContentLoaded', () => {
+        setLanguage(currentLang);
+        init();
+    });
+ 
+    function init() {
+        const container = document.getElementById('viewer');
+ 
+        scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x1e1e1e);
+ 
+        camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 1, 5000);
+        camera.position.set(400, 300, 400);
+ 
+        renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(container.clientWidth, container.clientHeight);
+        container.appendChild(renderer.domElement);
+ 
+        controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+ 
+        let idleTimeout = null;
+
+        controls.addEventListener('start', () => {
+            autoRotate = false;
+            // Если таймер уже был запущен, сбрасываем его, так как пользователь снова начал движение
+            if (idleTimeout) {
+                clearTimeout(idleTimeout);
+                idleTimeout = null;
+            }
+        });
+
+        controls.addEventListener('end', () => {
+            // Очищаем предыдущий таймер на всякий случай
+            if (idleTimeout) clearTimeout(idleTimeout);
+            
+            // Запускаем новый таймер на 3 секунды (3000 миллисекунд)
+            idleTimeout = setTimeout(() => {
+                autoRotate = true;
+            }, 3000);
+        });
+
+ 
+        scene.background = new THREE.Color(0x161920);
+ 
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+        scene.add(ambientLight);
+ 
+        const keyLight = new THREE.DirectionalLight(0xffffff, 1.0);
+        keyLight.position.set(40, 80, 50);
+        scene.add(keyLight);
+ 
+        const fillLight = new THREE.DirectionalLight(0x88bbff, 0.4);
+        fillLight.position.set(-40, 40, -30);
+        scene.add(fillLight);
+ 
+        const rimLight = new THREE.DirectionalLight(0xffeedd, 0.6);
+        rimLight.position.set(0, 50, -60);
+        scene.add(rimLight);
+ 
+        const studioFloorGeo = new THREE.PlaneGeometry(1000, 1000);
+        const studioFloorMat = new THREE.MeshStandardMaterial({
+            color: 0x0e1015,
+            roughness: 0.9,
+            metalness: 0.1
+        });
+        const studioFloor = new THREE.Mesh(studioFloorGeo, studioFloorMat);
+        studioFloor.rotation.x = -Math.PI / 2;
+        studioFloor.position.y = -45;
+        scene.add(studioFloor);
+ 
+        boxGroup = new THREE.Group();
+        boxGroup.position.y = -40;
+        scene.add(boxGroup);
+ 
+        const inputs = document.querySelectorAll('input, select');
+    inputs.forEach(input => {
+        input.addEventListener('input', (e) => {
+            // Если изменился материал подложки (черный/зеркало), НЕ останавливаем анимацию
+            if (e.target.id !== 'insertMaterial') {
+                autoRotate = false;
+                
+                if (idleTimeout) clearTimeout(idleTimeout);
+                
+                idleTimeout = setTimeout(() => {
+                    autoRotate = true;
+                }, 3000);
+            }
+            
+            updateScene();
+        });
+    });
+
+ 
+        updateScene();
+        animate();
+ 
+        window.addEventListener('resize', onWindowResize);
+    }
+
+    function fitCameraToAquarium(L, W, H) {
+        const maxDim = Math.max(L, W, H * 1.35);
+        
+        const container = document.getElementById('viewer');
+        const aspect = container.clientWidth / container.clientHeight;
+        
+        // Вычисляем нужную дистанцию под новый размер
+        let targetDistance = maxDim * 2.2;
+        if (aspect < 1) {
+            targetDistance = targetDistance / aspect * 1;
+        }
+
+        // Сохраняем текущее направление камеры от центра (target), чтобы не сбивать поворот пользователя
+        const dir = camera.position.clone().sub(controls.target).normalize();
+        
+        // Если вектор направления пустой (при самом первом запуске), задаем дефолтный
+        if (dir.lengthSq() === 0) {
+            dir.set(1, 0.5, 0.7).normalize();
+        }
+
+        const centerY = 0;
+        controls.target.set(0, centerY, 0);
+
+        // Отодвигаем камеру на новую дистанцию по текущему направлению
+        camera.position.copy(controls.target).addScaledVector(dir, targetDistance);
+        controls.update();
+    }
+
+    function onWindowResize() {
+        const container = document.getElementById('viewer');
+        camera.aspect = container.clientWidth / container.clientHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(container.clientWidth, container.clientHeight);
+        
+        // Автоматически пересчитываем зум при изменении размера окна или смене ориентации экрана
+        const L = parseFloat(document.getElementById('length').value) || 10;
+        const W = parseFloat(document.getElementById('width').value) || 10;
+        const H = parseFloat(document.getElementById('height').value) || 10;
+        fitCameraToAquarium(L, W, H);
+    }
+
+
+ 
+    function createDimensionBracket(startVec, endVec, text, offsetDir = new THREE.Vector3(0, 1, 0), offsetDist = 15) {
+        const group = new THREE.Group();
+        const s = startVec.clone().addScaledVector(offsetDir, offsetDist);
+        const e = endVec.clone().addScaledVector(offsetDir, offsetDist);
+ 
+        const segmentLength = s.distanceTo(e);
+        const peakDepth = Math.min(15, Math.max(5, segmentLength * 0.07));
+ 
+        const midPoint = new THREE.Vector3().addVectors(s, e).multiplyScalar(0.5);
+        const peakPoint = midPoint.clone().addScaledVector(offsetDir, peakDepth);
+ 
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        canvas.width = 256;
+        canvas.height = 64;
+ 
+        context.font = `Bold 36px Arial`;
+        context.fillStyle = '#4ec9b0';
+        context.textAlign = 'center';
+        context.textBaseline = 'bottom';
+        context.fillText(text, 128, 42);
+ 
+        const texture = new THREE.CanvasTexture(canvas);
+        const spriteMat = new THREE.SpriteMaterial({ map: texture, transparent: true });
+        const sprite = new THREE.Sprite(spriteMat);
+        
+        sprite.position.copy(peakPoint).addScaledVector(offsetDir, 8);
+
+        const isMobile = window.innerWidth <= 768;
+        const sizeMultiplier = isMobile ? 1.4 : 1.0;
+
+        const initialDist = camera ? camera.position.distanceTo(sprite.position) : 400;
+        let currentScale = initialDist * 0.08 * sizeMultiplier;
+        sprite.scale.set(currentScale * 1.8, currentScale * 0.6, 1);
+ 
+        const tempWorldPos = new THREE.Vector3();
+        sprite.onBeforeRender = (renderer, scene, camera) => {
+            sprite.getWorldPosition(tempWorldPos);
+            const distanceToCamera = camera.position.distanceTo(tempWorldPos);
+            const targetScale = distanceToCamera * 0.08 * sizeMultiplier;
+            
+            // Плавное приближение текущего масштаба к целевому (убирает резкие рывки при изменении цифр)
+            currentScale += (targetScale - currentScale) * 0.2;
+            
+            sprite.scale.set(currentScale * 1.8, currentScale * 0.6, 1);
+        };
+
+        group.add(sprite);
+ 
+        const lineMat = new THREE.LineBasicMaterial({ color: 0xffffff, linewidth: 2 });
+ 
+        const whiskersGeom = new THREE.BufferGeometry().setFromPoints([
+            startVec.clone(), s,
+            e, endVec.clone()
+        ]);
+        const whiskers = new THREE.LineSegments(whiskersGeom, lineMat);
+        group.add(whiskers);
+ 
+        const pinch = peakDepth * 0.35;
+        const control1 = s.clone().lerp(peakPoint, 0.5).addScaledVector(offsetDir, -pinch);
+        const control2 = e.clone().lerp(peakPoint, 0.5).addScaledVector(offsetDir, -pinch);
+ 
+        const curve1 = new THREE.QuadraticBezierCurve3(s, control1, peakPoint);
+        const curve2 = new THREE.QuadraticBezierCurve3(peakPoint, control2, e);
+ 
+        const curvePoints = [...curve1.getPoints(15), ...curve2.getPoints(15)];
+        const curveGeom = new THREE.BufferGeometry().setFromPoints(curvePoints);
+        const bracketCurve = new THREE.Line(curveGeom, lineMat);
+        group.add(bracketCurve);
+ 
+        return group;
+    }
+ 
+    function updateScene() {
+        while(boxGroup.children.length > 0){ 
+            boxGroup.remove(boxGroup.children[0]); 
+        }
+ 
+        const L = parseFloat(document.getElementById('length').value) || 10;
+        const W = parseFloat(document.getElementById('width').value) || 10;
+        const H = parseFloat(document.getElementById('height').value) || 10;
+        const T = parseFloat(document.getElementById('thickness').value) || 2;
+
+        fitCameraToAquarium(L, W, H);
+ 
+        const insertMatType = document.getElementById('insertMaterial').value;
+        const IT = parseFloat(document.getElementById('insertThickness').value) || 2;
+        const hW = parseFloat(document.getElementById('holeW').value) || 0;
+        const hH = parseFloat(document.getElementById('holeH').value) || 0;
+ 
+        const t = dict[currentLang];
+ 
+        const blackMaterial = new THREE.MeshBasicMaterial({ color: 0x050505 });
+ 
+        const clearAcrylicMaterial = new THREE.MeshPhysicalMaterial({
+            color: 0xaadfff,
+            transparent: true,
+            opacity: 0.3,
+            roughness: 0.02,
+            metalness: 0.05,
+            ior: 1.49,
+            transmission: 0.9,
+            thickness: 1.2,
+            side: THREE.DoubleSide,
+            depthWrite: false
+        });
+ 
+        let insertMaterial;
+        if (insertMatType === 'mirror') {
+            insertMaterial = new THREE.MeshStandardMaterial({
+                color: 0xcccccc,
+                metalness: 0.85,
+                roughness: 0.1
+            });
+        } else {
+            insertMaterial = blackMaterial;
+        }
+ 
+        function addEdges(mesh, color = 0x4ec9b0, opacity = 0.6) {
+            const edgesGeo = new THREE.EdgesGeometry(mesh.geometry);
+            const edgesMat = new THREE.LineBasicMaterial({ color: color, transparent: true, opacity: opacity });
+            const wireframe = new THREE.LineSegments(edgesGeo, edgesMat);
+            mesh.add(wireframe);
+        }
+ 
+        const bottomGeo = new THREE.BoxGeometry(L, T, W);
+        const bottomMesh = new THREE.Mesh(bottomGeo, blackMaterial);
+        bottomMesh.position.set(0, T/2 - 0.1, 0);
+        addEdges(bottomMesh, 0x555555, 0.4);
+ 
+        const gridHelper = new THREE.GridHelper(Math.max(L, W), 10, 0x444444, 0x333333);
+        gridHelper.position.set(0, T + 0.05, 0);
+        gridHelper.scale.set(L / Math.max(L, W), 1, W / Math.max(L, W));
+        boxGroup.add(gridHelper);
+        boxGroup.add(bottomMesh);
+ 
+        const lidMesh = new THREE.Mesh(bottomGeo, clearAcrylicMaterial);
+        lidMesh.position.set(0, H + T + T/2, 0);
+        addEdges(lidMesh, 0x4ec9b0, 0.8);
+        boxGroup.add(lidMesh);
+ 
+        const insertL = Math.max(1, L - (T * 2) - 0.2);
+        const insertW = Math.max(1, W - (T * 2) - 0.2);
+ 
+        let insertMesh;
+        if (hW > 0 && hH > 0 && hW < insertL && hH < insertW) {
+            const shape = new THREE.Shape();
+            shape.moveTo(-insertL/2, -insertW/2);
+            shape.lineTo(insertL/2, -insertW/2);
+            shape.lineTo(insertL/2, insertW/2);
+            shape.lineTo(-insertL/2, insertW/2);
+            shape.closePath();
+ 
+            const holePath = new THREE.Path();
+            holePath.moveTo(-hW/2, -hH/2);
+            holePath.lineTo(hW/2, -hH/2);
+            holePath.lineTo(hW/2, hH/2);
+            holePath.lineTo(-hW/2, hH/2);
+            holePath.closePath();
+            shape.holes.push(holePath);
+ 
+            const extrudeSettings = { depth: IT, bevelEnabled: false };
+            const insertGeo = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+            insertGeo.rotateX(Math.PI / 2);
+            insertGeo.center(); 
+            insertMesh = new THREE.Mesh(insertGeo, insertMaterial);
+            insertMesh.position.set(0, T + IT / 2, 0);
+ 
+            const halfHW = hW / 2;
+            const halfHH = hH / 2;
+            const hTopY = IT / 2;
+            const hBotY = -IT / 2;
+ 
+            const lineMat = new THREE.LineBasicMaterial({ color: 0xffaa00, transparent: true, opacity: 0.9 });
+ 
+            [[ -halfHW, -halfHH ], [ halfHW, -halfHH ], [ halfHW, halfHH ], [ -halfHW, halfHH ]].forEach(([px, pz]) => {
+                const lineGeo = new THREE.BufferGeometry().setFromPoints([
+                    new THREE.Vector3(px, hBotY, pz),
+                    new THREE.Vector3(px, hTopY, pz)
+                ]);
+                insertMesh.add(new THREE.Line(lineGeo, lineMat));
+            });
+ 
+        } else {
+            const insertGeo = new THREE.BoxGeometry(insertL, IT, insertW);
+            insertMesh = new THREE.Mesh(insertGeo, insertMaterial);
+            insertMesh.position.set(0, T + IT / 2, 0);
+        }
+ 
+        addEdges(insertMesh, 0xffaa00, 0.9);
+        boxGroup.add(insertMesh);
+ 
+        const frontBackGeo = new THREE.BoxGeometry(L, H, T);
+ 
+        const frontMesh = new THREE.Mesh(frontBackGeo, clearAcrylicMaterial);
+        frontMesh.position.set(0, H/2 + T + 0.1, W/2 - T/2);
+        addEdges(frontMesh, 0x4ec9b0, 0.8);
+        boxGroup.add(frontMesh);
+ 
+        const backMesh = new THREE.Mesh(frontBackGeo, clearAcrylicMaterial);
+        backMesh.position.set(0, H/2 + T + 0.1, -W/2 + T/2);
+        addEdges(backMesh, 0x4ec9b0, 0.8);
+        boxGroup.add(backMesh);
+ 
+        const sideGeo = new THREE.BoxGeometry(T, H, W - (T * 2));
+ 
+        const leftMesh = new THREE.Mesh(sideGeo, clearAcrylicMaterial);
+        leftMesh.position.set(-L/2 + T/2, H/2 + T + 0.1, 0);
+        addEdges(leftMesh, 0x4ec9b0, 0.8);
+        boxGroup.add(leftMesh);
+ 
+        const rightMesh = new THREE.Mesh(sideGeo, clearAcrylicMaterial);
+        rightMesh.position.set(L/2 - T/2, H/2 + T + 0.1, 0);
+        addEdges(rightMesh, 0x4ec9b0, 0.8);
+        boxGroup.add(rightMesh);
+ 
+        const lStart = new THREE.Vector3(-L/2, H + T * 2, W/2);
+        const lEnd = new THREE.Vector3(L/2, H + T * 2, W/2);
+        boxGroup.add(createDimensionBracket(lStart, lEnd, `${t.lblW}: ${L}`, new THREE.Vector3(0, 1, 0), 20));
+ 
+        const hStart = new THREE.Vector3(-L/2, T, W/2);
+        const hEnd = new THREE.Vector3(-L/2, H + T, W/2);
+        boxGroup.add(createDimensionBracket(hStart, hEnd, `${t.lblH}: ${H}`, new THREE.Vector3(-1, 0, 0), 25));
+ 
+        const wStart = new THREE.Vector3(L/2, T, -W/2);
+        const wEnd = new THREE.Vector3(L/2, T, W/2);
+        boxGroup.add(createDimensionBracket(wStart, wEnd, `${t.lblL}: ${W}`, new THREE.Vector3(1, 0, 0), 20));
+ 
+        const tStart = new THREE.Vector3(L/2 - T, H + T, 0);
+        const tEnd = new THREE.Vector3(L/2, H + T, 0);
+        boxGroup.add(createDimensionBracket(tStart, tEnd, `${t.lblT}: ${T}`, new THREE.Vector3(0, 1, 0), 15));
+    }
+ 
+    function animate() {
+        requestAnimationFrame(animate);
+ 
+        if (autoRotate && boxGroup) {
+            boxGroup.rotation.y += 0.001;
+        }
+ 
+        controls.update();
+        renderer.render(scene, camera);
+    }
+ 
+    function onWindowResize() {
+        const container = document.getElementById('viewer');
+        camera.aspect = container.clientWidth / container.clientHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(container.clientWidth, container.clientHeight);
+    }
+ 
+    // Общая функция генерации XML-строки проекта LightBurn
+    function generateLBRN2Content() {
+        const L = parseFloat(document.getElementById('length').value) || 300;
+        const W = parseFloat(document.getElementById('width').value) || 200;
+        const H = parseFloat(document.getElementById('height').value) || 150;
+        const T = parseFloat(document.getElementById('thickness').value) || 3;
+ 
+        const hW = parseFloat(document.getElementById('holeW').value) || 0;
+        const hH = parseFloat(document.getElementById('holeH').value) || 0;
+        
+        const insertL = Math.max(1, L - (T * 2));
+        const insertW = Math.max(1, W - (T * 2));
+
+        const gap = 15;
+        const yTopWall = 225;
+        const xInsert = 300;
+        const yInsert = yTopWall + H + gap;
+        const xBottom = xInsert + insertL + gap;
+        const yBottom = yInsert;
+
+        let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
+        xml += `<LightBurnProject AppVersion="2.1.03" DeviceName="Ruida 644XS" FormatVersion="1" MaterialHeight="${T}" MirrorX="True" MirrorY="True" AskForSendName="True">\n`;
+        
+        xml += `    <CutSetting type="Cut">\n`;
+        xml += `        <index Value="28"/>\n`;
+        xml += `        <name Value="${dict[currentLang].materialAlign}"/>\n`;
+        xml += `        <minPower Value="34"/>\n`;
+        xml += `        <maxPower Value="35"/>\n`;
+        xml += `        <speed Value="100"/>\n`;
+        xml += `        <numPasses Value="1"/>\n`;
+        xml += `        <priority Value="0"/>\n`;
+        xml += `    </CutSetting>\n`;
+
+        xml += `    <CutSetting type="Cut">\n`;
+        xml += `        <index Value="1"/>\n`;
+        xml += `        <name Value="${dict[currentLang].materialMirror}"/>\n`;
+        xml += `        <minPower Value="37.5"/>\n`;
+        xml += `        <maxPower Value="38.5"/>\n`;
+        xml += `        <speed Value="17"/>\n`;
+        xml += `        <numPasses Value="2"/>\n`;
+        xml += `        <priority Value="1"/>\n`;
+        xml += `    </CutSetting>\n`;
+
+        xml += `    <CutSetting type="Cut">\n`;
+        xml += `        <index Value="25"/>\n`;
+        xml += `        <name Value="${dict[currentLang].materialBottom}"/>\n`;
+        xml += `        <minPower Value="37.5"/>\n`;
+        xml += `        <maxPower Value="38.5"/>\n`;
+        xml += `        <speed Value="20"/>\n`;
+        xml += `        <numPasses Value="3"/>\n`;
+        xml += `        <priority Value="1"/>\n`;
+        xml += `    </CutSetting>\n`;
+
+        xml += `    <CutSetting type="Cut">\n`;
+        xml += `        <index Value="26"/>\n`;
+        xml += `        <name Value="${dict[currentLang].material} ${T}мм"/>\n`;
+        xml += `        <minPower Value="37"/>\n`;
+        xml += `        <maxPower Value="38"/>\n`;
+        xml += `        <speed Value="6.5"/>\n`;
+        xml += `        <numPasses Value="1"/>\n`;
+        xml += `        <priority Value="1"/>\n`;
+        xml += `    </CutSetting>\n`;
+
+        if (hW > 0 && hH > 0) {
+            let holeX = xInsert;
+            let holeY = yInsert;
+            xml += `    <Shape Type="Group" CutIndex="0">\n`;
+            xml += `        <XForm>1 0 0 1 0 0</XForm>\n`;
+            xml += `        <Children>\n`;
+            xml += `            <Shape Type="Rect" CutIndex="${document.getElementById('insertMaterial').value === 'mirror' ? 1 : 25}" W="${insertL}" H="${insertW}" Cr="0">\n`;
+            xml += `                <XForm>1 0 0 1 ${xBottom - L + T - gap} ${yInsert}</XForm>\n`;
+            xml += `            </Shape>\n`;
+            xml += `            <Shape Type="Rect" CutIndex="${document.getElementById('insertMaterial').value === 'mirror' ? 1 : 25}" W="${hW}" H="${hH}" Cr="0">\n`;
+            xml += `                <XForm>1 0 0 1 ${xBottom - L + T - gap} ${holeY}</XForm>\n`;
+            xml += `            </Shape>\n`;
+            xml += `        </Children>\n`;
+            xml += `    </Shape>\n`;
+        } else {
+            xml += `    <Shape Type="Rect" CutIndex="26" W="${insertL}" H="${insertW}" Cr="0">\n`;
+            xml += `        <XForm>1 0 0 1 ${xInsert} ${yInsert}</XForm>\n`;
+            xml += `    </Shape>\n`;
+        }
+
+        xml += `    <Shape Type="Group" CutIndex="0">\n`;
+        xml += `        <XForm>1 0 0 1 0 0</XForm>\n`;
+        xml += `        <Children>\n`;
+        xml += `            <Shape Type="Rect" CutIndex="25" W="${L}" H="${W}" Cr="0">\n`;
+        xml += `                <XForm>1 0 0 1 ${xBottom} ${yBottom}</XForm>\n`;
+        xml += `            </Shape>\n`;
+        xml += `            <Shape Type="Rect" CutIndex="28" W="${L - (T * 2)}" H="${W - (T * 2)}" Cr="0">\n`;
+        xml += `                <XForm>1 0 0 1 ${xBottom} ${yBottom}</XForm>\n`;
+        xml += `            </Shape>\n`;
+        xml += `        </Children>\n`;
+        xml += `    </Shape>\n`;
+
+        xml += `    <Shape Type="Rect" CutIndex="26" W="${L}" H="${H}" Cr="0">\n`;
+        xml += `        <XForm>1 0 0 1 ${xBottom} ${yBottom + (H / 2) + (W / 2) + gap}</XForm>\n`;
+        xml += `    </Shape>\n`;
+
+        const l1x1 = xBottom + (L / 2) - T, l1y1 = yBottom + (W / 2) + gap;
+        const l1x2 = xBottom + (L / 2) - T, l1y2 = yBottom + (W / 2) + gap + H;
+
+        xml += `    <!-- Блок: Прямая линия -->\n`;
+        xml += `    <Shape Type="Path" CutIndex="28" VertID="0" PrimID="0">\n`;
+        xml += `        <XForm>1 0 0 1 0 0</XForm>\n`;
+        xml += `        <VertList>V${l1x1} ${l1y1}c0x1c1x${l1x1}c1y${l1y1}V${l1x2} ${l1y2}c0x${l1x2}c0y${l1y2}c1x1</VertList>\n`;
+        xml += `        <PrimList>L0 1</PrimList>\n`;
+        xml += `    </Shape>\n`;
+
+        const l2x1 = xBottom - (L / 2) + T, l2y1 = yBottom + (W / 2) + gap;
+        const l2x2 = xBottom - (L / 2) + T, l2y2 = yBottom + (W / 2) + gap + H;
+
+        xml += `    <!-- Блок: Прямая линия -->\n`;
+        xml += `    <Shape Type="Path" CutIndex="28" VertID="1" PrimID="0">\n`;
+        xml += `        <XForm>1 0 0 1 0 0</XForm>\n`;
+        xml += `        <VertList>V${l2x1} ${l2y1}c0x1c1x${l2x1}c1y${l2y1}V${l2x2} ${l2y2}c0x${l2x2}c0y${l2y2}c1x1</VertList>\n`;
+        xml += `        <PrimList>L0 1</PrimList>\n`;
+        xml += `    </Shape>\n`;
+
+        xml += `    <Shape Type="Rect" CutIndex="26" W="${H}" H="${W - (T * 2)}" Cr="0">\n`;
+        xml += `        <XForm>1 0 0 1 ${xBottom + (H / 2) + (L / 2) + gap} ${yBottom}</XForm>\n`;
+        xml += `    </Shape>\n`;
+
+        xml += `    <Shape Type="Group" CutIndex="0">\n`;
+        xml += `        <XForm>1 0 0 1 0 0</XForm>\n`;
+        xml += `        <Children>\n`;
+        xml += `            <Shape Type="Rect" CutIndex="26" W="${L}" H="${W}" Cr="0">\n`;
+        xml += `                <XForm>1 0 0 1 ${xBottom} ${yBottom - W - gap}</XForm>\n`;
+        xml += `            </Shape>\n`;
+        xml += `            <Shape Type="Rect" CutIndex="28" W="${L - (T * 2)}" H="${W - (T * 2)}" Cr="0">\n`;
+        xml += `                <XForm>1 0 0 1 ${xBottom} ${yBottom - W - gap}</XForm>\n`;
+        xml += `            </Shape>\n`;
+        xml += `        </Children>\n`;
+        xml += `    </Shape>\n`;
+
+        xml += `    <Notes ShowOnLoad="0" Notes=""/>\n`;
+        xml += `</LightBurnProject>`;
+
+        return { xml, L, W, H };
+    }
+ 
+    function exportToLBRN2() {
+        const data = generateLBRN2Content();
+        const blob = new Blob([data.xml], { type: 'application/xml' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `aquarium_${data.L}x${data.W}x${data.H}.lbrn2`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    // Новая функция «Поделиться» через Web Share API (Telegram, WhatsApp и др.)
+    async function shareToSocial() {
+    const data = generateLBRN2Content();
+    const fileName = `aquarium_${data.L}x${data.W}x${data.H}.lbrn2`;
+    const file = new File([data.xml], fileName, { type: 'application/xml' });
+
+    // Проверяем поддержку шеринга файлов
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+            await navigator.share({
+                title: 'LightBurn Aquarium',
+                text: dict[currentLang].shareMessage,
+                files: [file]
+            });
+        } catch (error) {
+            // Если пользователь отменил шеринг (AbortError) — это нормально, ничего делать не нужно.
+            // Если браузер заблокировал доступ (NotAllowedError) — падаем на скачивание.
+            if (error.name !== 'AbortError') {
+                alert(dict[currentLang].shareAlert, error);
+                exportToLBRN2();
+            }
+        }
+    } else {
+        // Если браузер в принципе не поддерживает передачу файлов через API
+        exportToLBRN2();
+    }
+}
+</script>
+</body>
+</html>
