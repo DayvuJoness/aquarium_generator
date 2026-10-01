@@ -127,8 +127,7 @@
             
             #sidebar {
                 width: 100%;           /* Панель занимает всю ширину экрана */
-                max-height: 40dvh;      /* Ограничиваем высоту панели, чтобы оставалось место для 3D-сцены */
-                min-height: 40dvh;      /* Ограничиваем высоту панели, чтобы оставалось место для 3D-сцены */
+                max-height: 40vh;      /* Ограничиваем высоту панели, чтобы оставалось место для 3D-сцены */
                 border-right: none;    
                 border-bottom: 1px solid #333; /* Граница снизу вместо правой */
             }
@@ -335,6 +334,8 @@
     let scene, camera, renderer, controls;
     let boxGroup;
     let autoRotate = true;
+
+    const dimensionSprites = {};
  
     window.addEventListener('DOMContentLoaded', () => {
         setLanguage(currentLang);
@@ -413,22 +414,22 @@
         scene.add(boxGroup);
  
         const inputs = document.querySelectorAll('input, select');
-    inputs.forEach(input => {
-        input.addEventListener('input', (e) => {
-            // Если изменился материал подложки (черный/зеркало), НЕ останавливаем анимацию
-            if (e.target.id !== 'insertMaterial') {
-                autoRotate = false;
+        inputs.forEach(input => {
+            input.addEventListener('input', (e) => {
+                // Если изменился материал подложки (черный/зеркало), НЕ останавливаем анимацию
+                if (e.target.id !== 'insertMaterial') {
+                    autoRotate = false;
+                    
+                    if (idleTimeout) clearTimeout(idleTimeout);
+                    
+                    idleTimeout = setTimeout(() => {
+                        autoRotate = true;
+                    }, 3000);
+                }
                 
-                if (idleTimeout) clearTimeout(idleTimeout);
-                
-                idleTimeout = setTimeout(() => {
-                    autoRotate = true;
-                }, 3000);
-            }
-            
-            updateScene();
+                updateScene();
+            });
         });
-    });
 
  
         updateScene();
@@ -480,51 +481,57 @@
 
 
  
-    function createDimensionBracket(startVec, endVec, text, offsetDir = new THREE.Vector3(0, 1, 0), offsetDist = 15) {
+    function createDimensionBracket(key, startVec, endVec, text, offsetDir = new THREE.Vector3(0, 1, 0), offsetDist = 15) {
         const group = new THREE.Group();
         const s = startVec.clone().addScaledVector(offsetDir, offsetDist);
         const e = endVec.clone().addScaledVector(offsetDir, offsetDist);
  
         const segmentLength = s.distanceTo(e);
-        const peakDepth = Math.min(15, Math.max(5, segmentLength * 0.07));
+        const peakDepth = 12; // Фиксированная глубина, чтобы не прыгало
  
         const midPoint = new THREE.Vector3().addVectors(s, e).multiplyScalar(0.5);
         const peakPoint = midPoint.clone().addScaledVector(offsetDir, peakDepth);
  
-        const canvas = document.createElement('canvas');
-        const context = canvas.getContext('2d');
-        canvas.width = 256;
-        canvas.height = 64;
- 
+        // Проверяем, создан ли уже спрайт для этого параметра (key, например 'width', 'height' и т.д.)
+        if (!dimensionSprites[key]) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 256;
+            canvas.height = 64;
+            const context = canvas.getContext('2d');
+            
+            const texture = new THREE.CanvasTexture(canvas);
+            const spriteMat = new THREE.SpriteMaterial({ map: texture, transparent: true });
+            const sprite = new THREE.Sprite(spriteMat);
+            
+            dimensionSprites[key] = { sprite, canvas, context, texture };
+        }
+
+        const cached = dimensionSprites[key];
+        const context = cached.context;
+        
+        // Чистим холст и рисуем новый текст без пересоздания объекта
+        context.clearRect(0, 0, cached.canvas.width, cached.canvas.height);
         context.font = `Bold 36px Arial`;
         context.fillStyle = '#4ec9b0';
         context.textAlign = 'center';
-        context.textBaseline = 'bottom';
-        context.fillText(text, 128, 42);
- 
-        const texture = new THREE.CanvasTexture(canvas);
-        const spriteMat = new THREE.SpriteMaterial({ map: texture, transparent: true });
-        const sprite = new THREE.Sprite(spriteMat);
+        context.textBaseline = 'middle';
+        context.fillText(text, 128, 32);
         
+        // Сообщаем Three.js, что текстуру нужно обновить на GPU
+        cached.texture.needsUpdate = true;
+
+        const sprite = cached.sprite;
         sprite.position.copy(peakPoint).addScaledVector(offsetDir, 8);
 
         const isMobile = window.innerWidth <= 768;
         const sizeMultiplier = isMobile ? 1.4 : 1.0;
 
-        const initialDist = camera ? camera.position.distanceTo(sprite.position) : 400;
-        let currentScale = initialDist * 0.08 * sizeMultiplier;
-        sprite.scale.set(currentScale * 1.8, currentScale * 0.6, 1);
- 
         const tempWorldPos = new THREE.Vector3();
         sprite.onBeforeRender = (renderer, scene, camera) => {
             sprite.getWorldPosition(tempWorldPos);
             const distanceToCamera = camera.position.distanceTo(tempWorldPos);
-            const targetScale = distanceToCamera * 0.08 * sizeMultiplier;
-            
-            // Плавное приближение текущего масштаба к целевому (убирает резкие рывки при изменении цифр)
-            currentScale += (targetScale - currentScale) * 0.2;
-            
-            sprite.scale.set(currentScale * 1.8, currentScale * 0.6, 1);
+            const scale = distanceToCamera * 0.08 * sizeMultiplier;
+            sprite.scale.set(scale * 1.8, scale * 0.6, 1);
         };
 
         group.add(sprite);
@@ -698,19 +705,19 @@
  
         const lStart = new THREE.Vector3(-L/2, H + T * 2, W/2);
         const lEnd = new THREE.Vector3(L/2, H + T * 2, W/2);
-        boxGroup.add(createDimensionBracket(lStart, lEnd, `${t.lblW}: ${L}`, new THREE.Vector3(0, 1, 0), 20));
+        boxGroup.add(createDimensionBracket('widthDim', lStart, lEnd, `${t.lblW}: ${L}`, new THREE.Vector3(0, 1, 0), 20));
  
         const hStart = new THREE.Vector3(-L/2, T, W/2);
         const hEnd = new THREE.Vector3(-L/2, H + T, W/2);
-        boxGroup.add(createDimensionBracket(hStart, hEnd, `${t.lblH}: ${H}`, new THREE.Vector3(-1, 0, 0), 25));
+        boxGroup.add(createDimensionBracket('heightDim', hStart, hEnd, `${t.lblH}: ${H}`, new THREE.Vector3(-1, 0, 0), 25));
  
         const wStart = new THREE.Vector3(L/2, T, -W/2);
         const wEnd = new THREE.Vector3(L/2, T, W/2);
-        boxGroup.add(createDimensionBracket(wStart, wEnd, `${t.lblL}: ${W}`, new THREE.Vector3(1, 0, 0), 20));
+        boxGroup.add(createDimensionBracket('lengthDim', wStart, wEnd, `${t.lblL}: ${W}`, new THREE.Vector3(1, 0, 0), 20));
  
         const tStart = new THREE.Vector3(L/2 - T, H + T, 0);
         const tEnd = new THREE.Vector3(L/2, H + T, 0);
-        boxGroup.add(createDimensionBracket(tStart, tEnd, `${t.lblT}: ${T}`, new THREE.Vector3(0, 1, 0), 15));
+        boxGroup.add(createDimensionBracket('thickDim', tStart, tEnd, `${t.lblT}: ${T}`, new THREE.Vector3(0, 1, 0), 15));
     }
  
     function animate() {
