@@ -2,7 +2,7 @@
 <html lang="ru" id="htmlRoot">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title id="pageTitle">Генератор аквариумов для LightBurn</title>
     <style>
         body {
@@ -12,10 +12,11 @@
             color: #f0f0f0;
             display: flex;
             height: 100vh;
+            height: 100dvh;
             overflow: hidden;
         }
         #sidebar {
-            width: 340px;
+            width: 380px;
             background: #252526;
             padding: 20px;
             box-sizing: border-box;
@@ -71,6 +72,11 @@
             border-radius: 4px;
             font-size: 14px;
         }
+        input:read-only {
+            background: #2d2d2d;
+            color: #888;
+            border-color: #444;
+        }
         button {
             background: #0e639c;
             color: white;
@@ -79,31 +85,47 @@
             border-radius: 4px;
             cursor: pointer;
             font-weight: bold;
-            margin-top: 10px;
+            margin-top: 5px;
         }
         button:hover { background: #1177bb; }
         
-        /* Стили для блока кнопок в ряд */
         .button-group {
             display: flex;
             gap: 10px;
+            margin-top: 5px;
         }
         .button-group button {
             flex: 1;
         }
-        #btn-share {
-            background: #2b9348;
-        }
-        #btn-share:hover {
-            background: #40916c;
-        }
+        #btn-share { background: #2b9348; }
+        #btn-share:hover { background: #40916c; }
 
-        .grp { display: flex; flex-direction: column; gap: 15px; }
-        input[readonly] { opacity: .55; cursor: default; }
-        .vec { border: 1px solid #444; border-radius: 6px; padding: 10px; display: flex; flex-direction: column; gap: 8px; }
-        .vec-h { display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
-        .mini { padding: 4px 8px; margin: 0 0 0 4px; font-size: 12px; }
-        .mini.red { background: #a1260d; }
+        .vector-slot {
+            background: #2d2d2d;
+            border: 1px solid #444;
+            padding: 10px;
+            border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        .vector-slot-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            color: #4ec9b0;
+            font-weight: bold;
+        }
+        .vector-slot-header button {
+            background: #a22;
+            padding: 3px 8px;
+            margin: 0;
+            font-size: 11px;
+        }
+        .vector-slot-header button:hover { background: #c33; }
+
         #viewer {
             flex-grow: 1;
             position: relative;
@@ -124,26 +146,38 @@
             left: 15px;
         }
 
-        /* Мобильная адаптация */
-        /* Адаптивность для мобильных устройств (ширина экрана до 768px) */
+        #tooltip{position:fixed;display:none;z-index:50;pointer-events:none;background:rgba(0,0,0,.88);color:#fff;border:1px solid #ff3333;padding:5px 9px;border-radius:5px;font-size:13px;white-space:nowrap;box-shadow:0 2px 10px rgba(0,0,0,.45)}
+@media (hover:none),(pointer:coarse){#tooltip{display:none!important}}
+        #viewer canvas{display:block;touch-action:none}
+        .lang-switcher{flex-wrap:wrap}
         @media (max-width: 768px) {
-            body {
-                flex-direction: column; /* Меняем направление флекс-контейнера на колонку */
-            }
-            
-            #sidebar {
-                width: 100%;           /* Панель занимает всю ширину экрана */
-                max-height: 40vh;      /* Ограничиваем высоту панели, чтобы оставалось место для 3D-сцены */
-                border-right: none;    
-                border-bottom: 1px solid #333; /* Граница снизу вместо правой */
-            }
-            
-            #viewer {
-                width: 100%;
-                flex-grow: 1;          /* Канвас заполняет всё оставшееся пространство снизу */
-            }
+            body { flex-direction: column; }
+            #viewer { order:-1; flex:0 0 40%; min-height:200px; width:100%; }
+            body.kb #viewer { flex-basis:30%; min-height:150px; }
+            #sidebar { width:100%; flex:1 1 auto; max-height:none; padding:14px 14px calc(14px + env(safe-area-inset-bottom)); border-right:none; border-left:none; border-top:1px solid #333; -webkit-overflow-scrolling:touch; overscroll-behavior:contain; }
+            input, select, button { font-size:16px; min-height:44px; }
+            .lang-btn { min-height:40px; font-size:14px; }
+            .button-group { position:sticky; bottom:-14px; background:#252526; padding:8px 0; margin-top:0; z-index:5; }
+            .vector-slot-header button { min-height:32px; font-size:13px; }
+            #info-hint { bottom:6px; right:6px; font-size:11px; padding:4px 8px; }
         }
-
+        .grp{display:flex;flex-direction:column;gap:12px}
+        .vec{background:#2d2d2d;border:1px solid #444;padding:10px;border-radius:6px;display:flex;flex-direction:column;gap:8px;margin-bottom:8px}
+        .vec-h{display:flex;justify-content:space-between;align-items:center;gap:6px;font-size:12px;color:#4ec9b0}
+        .vec-h span{display:flex;gap:4px}
+        .mini{padding:3px 8px;margin:0;font-size:12px}
+        .mini.red{background:#a22}
+        input,select{min-width:0;box-sizing:border-box;width:100%}
+        html{-webkit-text-size-adjust:100%}
+        body{overscroll-behavior:none}
+        @media (pointer:coarse){#info-hint{display:none}}
+        @media (max-width:768px){.mini{min-height:36px;min-width:40px}#sidebar{padding-left:calc(14px + env(safe-area-inset-left));padding-right:calc(14px + env(safe-area-inset-right))}}
+        @media (orientation:landscape) and (max-height:520px){
+            body{flex-direction:row}
+            #viewer{order:0;flex:1 1 auto;min-height:0;width:auto}
+            #sidebar{width:46%;flex:0 0 46%;border-top:none;border-right:1px solid #333}
+            html[dir="rtl"] #sidebar{border-right:none;border-left:1px solid #333}
+        }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
@@ -154,6 +188,7 @@
         <div class="lang-switcher">
             <button class="lang-btn" id="btn-ru" onclick="setLanguage('ru')">РУС</button>
             <button class="lang-btn" id="btn-en" onclick="setLanguage('en')">ENG</button>
+            <button class="lang-btn" id="btn-ar" onclick="setLanguage('ar')">العربية</button>
             <button class="lang-btn" id="btn-he" onclick="setLanguage('he')">עברית</button>
         </div>
  
@@ -195,7 +230,8 @@
                 <option value="center" data-i="tCenter">Отверстие по центру</option>
                 <option value="offset" data-i="tOffset">Смещённое отверстие</option>
                 <option value="tab" data-i="tTab">С выступом (загиб)</option>
-                <option value="custom" data-i="tCustom">Свои рисунки (SVG / LBRN2)</option>
+                <option value="custom" data-i="tCustom">Свои рисунки (SVG)</option>
+                <option value="slots" id="opt-type-slots" data-i="optTypeSlots">Две продольные щели</option>
             </select>
         </div>
         <div class="grp" id="grp-hole">
@@ -244,10 +280,22 @@
                 <input type="number" id="bendPos" value="8" step="1" min="2">
             </div>
         </div>
+        <div class="grp" id="grp-slots">
+            <div class="control-group"><label data-i="slotW">Ширина щелей (mm):</label><input type="number" id="slotW" value="3" min="1" step="1"></div>
+            <div class="control-group"><label data-i="slotLen">Длина щелей (mm):</label><input type="number" id="slotLen" value="100" min="1" step="1"></div>
+            <div class="control-group"><label data-i="slotDist">Расстояние от общего центра до щели (mm):</label><input type="number" id="slotDist" value="40" min="0" step="1"></div>
+            <div class="control-group"><label data-i="slotShX">Смещение центра по X (mm):</label><input type="number" id="slotShX" value="0" step="1"></div>
+            <div class="control-group"><label data-i="slotShY">Смещение центра по Y (mm):</label><input type="number" id="slotShY" value="0" step="1"></div>
+            <button data-i="slotRot" onclick="slotRot=!slotRot;updateScene()">⟳ 90°</button>
+            <div class="control-group"><label data-i="vLeft">Отступ слева (mm)</label><input type="number" id="slLeft" readonly></div>
+            <div class="control-group"><label data-i="vTop">Отступ сверху (mm)</label><input type="number" id="slTop" readonly></div>
+            <div class="control-group"><label data-i="vRight">Отступ справа (mm), авто</label><input type="number" id="slRight" readonly></div>
+            <div class="control-group"><label data-i="vBottom">Отступ снизу (mm), авто</label><input type="number" id="slBottom" readonly></div>
+        </div>
         <div class="grp" id="grp-custom">
             <div class="grp" id="vectors-list"></div>
             <button id="btn-add-vec" onclick="document.getElementById('vecFile').click()">Добавить вектор (0/5)</button>
-            <input type="file" id="vecFile" accept=".svg,.lbrn2" style="display:none" onchange="onVecFile(event)">
+            <input type="file" id="vecFile" accept=".svg,image/svg+xml" style="display:none" onchange="onVecFile(event)">
         </div>
  
         <!-- Блок кнопок сохранения и отправки -->
@@ -257,6 +305,7 @@
         </div>
     </div>
  
+    <div id="tooltip"></div>
     <div id="viewer">
         <div id="info-hint">Вращение: ЛКМ | Панорама: ПКМ | Зум: Колесико</div>
     </div>
@@ -281,7 +330,7 @@
             tCenter: "Отверстие по центру",
             tOffset: "Смещённое отверстие",
             tTab: "С выступом (загиб)",
-            tCustom: "Свои рисунки (SVG / LBRN2)",
+            tCustom: "Свои рисунки (SVG)",
             offL: "Отступ отверстия слева (mm):",
             offT: "Отступ отверстия сверху (mm):",
             offR: "Отступ справа (mm), авто:",
@@ -297,7 +346,7 @@
             vBottom: "Отступ снизу (mm), авто",
             vW: "Ширина (mm)",
             vH: "Высота (mm)",
-            vErr: "Не удалось прочитать файл (нужен SVG или LBRN2)",
+            vErr: "Не удалось прочитать файл (нужен SVG)",
             export: "Сохранить",
             share: "Поделиться",
             hint: "Вращение: ЛКМ | Панорама: ПКМ | Зум: Колесико",
@@ -330,7 +379,7 @@
             tCenter: "Centered hole",
             tOffset: "Offset hole",
             tTab: "With bent tab",
-            tCustom: "Custom drawings (SVG / LBRN2)",
+            tCustom: "Custom drawings (SVG)",
             offL: "Hole offset from left (mm):",
             offT: "Hole offset from top (mm):",
             offR: "Right offset (mm), auto:",
@@ -346,7 +395,7 @@
             vBottom: "Bottom offset (mm), auto",
             vW: "Width (mm)",
             vH: "Height (mm)",
-            vErr: "Could not read the file (SVG or LBRN2 required)",
+            vErr: "Could not read the file (SVG required)",
             export: "Save",
             share: "Share",
             hint: "Rotate: LMB | Pan: RMB | Zoom: Wheel",
@@ -379,7 +428,7 @@
             tCenter: "חור במרכז",
             tOffset: "חור מוזז",
             tTab: "עם לשונית מקופלת",
-            tCustom: "ציורים מותאמים (SVG / LBRN2)",
+            tCustom: "ציורים מותאמים (SVG)",
             offL: "מרחק החור משמאל (mm):",
             offT: "מרחק החור מלמעלה (mm):",
             offR: "מרחק מימין (mm), אוטומטי:",
@@ -395,7 +444,7 @@
             vBottom: "מרחק מלמטה (mm), אוטומטי",
             vW: "רוחב (mm)",
             vH: "גובה (mm)",
-            vErr: "לא ניתן לקרוא את הקובץ (נדרש SVG או LBRN2)",
+            vErr: "לא ניתן לקרוא את הקובץ (נדרש SVG)",
             export: "שמור",
             share: "שתף",
             hint: "סיבוב: לחצן שמאלי | פנומה: לחצן ימני | זום: גלגלת",
@@ -409,9 +458,29 @@
             materialAlign: "יישור",
             shareMessage: "ציור אקווריום לחיתוך לייזר",
             shareAlert: "...השיתוף נדחה או חסום, הפעל את ההורדה"
-        }
+        },
     };
  
+    Object.assign(dict.ru, { optTypeSlots: "Две щели", slotW: "Ширина щелей (mm):", slotLen: "Длина щелей (mm):", slotDist: "Расстояние от общего центра до щели (mm):", slotShX: "Смещение центра по X (mm):", slotShY: "Смещение центра по Y (mm):", slotRot: "⟳ Повернуть на 90°" });
+    Object.assign(dict.en, { optTypeSlots: "Two slots", slotW: "Slot width (mm):", slotLen: "Slot length (mm):", slotDist: "Distance from common center to slot (mm):", slotShX: "Center shift X (mm):", slotShY: "Center shift Y (mm):", slotRot: "⟳ Rotate 90°" });
+    Object.assign(dict.he, { optTypeSlots: "שני חריצים", slotW: "רוחב החריצים (mm):", slotLen: "אורך החריצים (mm):", slotDist: "מרחק מהמרכז המשותף לחריץ (mm):", slotShX: "הזזת מרכז ב-X (mm):", slotShY: "הזזת מרכז ב-Y (mm):", slotRot: "⟳ סובב 90°" });
+    dict.ar = {
+        title: "مولّد أحواض السمك لـ LightBurn", header: "معاملات الحوض", insertHeader: "القاعدة الداخلية",
+        width: "الطول (mm):", length: "العرض (mm):", height: "الارتفاع (mm):", thickness: "سماكة الجدران (mm):",
+        insertMat: "مادة القاعدة:", optMirror: "مرآة", optBlack: "أسود", insertThick: "سماكة القاعدة (mm):",
+        holeW: "عرض الفتحة في القاعدة (0 - بدون فتحة):", holeH: "طول الفتحة في القاعدة (0 - بدون فتحة):",
+        insType: "نوع القاعدة:", tCenter: "فتحة في المنتصف", tOffset: "فتحة مُزاحة", tTab: "مع لسان مثني", tCustom: "رسومات خاصة (SVG)",
+        offL: "إزاحة الفتحة من اليسار (mm):", offT: "إزاحة الفتحة من الأعلى (mm):", offR: "الإزاحة من اليمين (mm)، تلقائي:", offB: "الإزاحة من الأسفل (mm)، تلقائي:",
+        tabW: "عرض اللوحة (عرض اللسان، mm):", tabL: "طول اللوحة (على طول اللسان، mm):", slotD: "عمق الشق في القاعدة (mm):", bendP: "مركز الثني (علامات) من بداية الشق (mm):",
+        addVec: "إضافة متجه", vLeft: "الإزاحة من اليسار (mm)", vTop: "الإزاحة من الأعلى (mm)", vRight: "الإزاحة من اليمين (mm)، تلقائي", vBottom: "الإزاحة من الأسفل (mm)، تلقائي",
+        vW: "العرض (mm)", vH: "الارتفاع (mm)", vErr: "تعذّرت قراءة الملف (يلزم SVG)", export: "حفظ", share: "مشاركة",
+        hint: "تدوير: الزر الأيسر | تحريك: الزر الأيمن | تكبير: العجلة", lblL: "الطول", lblW: "العرض", lblH: "الارتفاع", lblT: "السماكة",
+        material: "أكريليك شفاف", materialBottom: "أكريليك أسود", materialMirror: "أكريليك مرآة", materialAlign: "محاذاة",
+        shareMessage: "مخطط حوض سمك للقطع بالليزر", shareAlert: "تم رفض المشاركة أو حظرها، سيبدأ التنزيل...",
+        optTypeSlots: "شقّان", slotW: "عرض الشقوق (mm):", slotLen: "طول الشقوق (mm):", slotDist: "المسافة من المركز المشترك إلى الشق (mm):", slotShX: "إزاحة المركز على X (mm):", slotShY: "إزاحة المركز على Y (mm):", slotRot: "⟳ تدوير 90°"
+    };
+    ['ru', 'he', 'ar'].forEach(l => dict[l] = Object.assign({}, dict.en, dict[l]));
+
     let currentLang = localStorage.getItem('aquarium_lang') || 'ru';
  
     function setLanguage(lang) {
@@ -419,7 +488,7 @@
         localStorage.setItem('aquarium_lang', lang);
  
         const htmlRoot = document.getElementById('htmlRoot');
-        if (lang === 'he') {
+        if (lang === 'he' || lang === 'ar') {
             htmlRoot.setAttribute('dir', 'rtl');
         } else {
             htmlRoot.setAttribute('dir', 'ltr');
@@ -459,6 +528,40 @@
     let autoRotate = true;
 
     const dimensionSprites = {};
+    const hoverItems = { edges: [], planes: [] };
+    const rc = new THREE.Raycaster();
+    let mouse = null, dragging = false, hovered = null, slotRot = false;
+    function clearHover() { if (hovered) hovered.vis.visible = false; hovered = null; const tp = document.getElementById('tooltip'); if (tp) tp.style.display = 'none'; }
+    function pick() {
+        if (dragging || !(hoverItems.edges.length + hoverItems.planes.length)) return clearHover();
+        const r = renderer.domElement.getBoundingClientRect(), mx = mouse.x - r.left, my = mouse.y - r.top;
+        boxGroup.updateMatrixWorld(true);
+        const sp = v => { const q = v.clone().applyMatrix4(boxGroup.matrixWorld).project(camera); return [(q.x + 1) / 2 * r.width, (1 - q.y) / 2 * r.height, q.z]; };
+        let best = null, bd = 8;
+        hoverItems.edges.forEach(it => {
+            const A = sp(it.a), B = sp(it.b); if (A[2] > 1 || B[2] > 1) return;
+            const dx = B[0] - A[0], dy = B[1] - A[1], l2 = dx * dx + dy * dy || 1, k = Math.max(0, Math.min(1, ((mx - A[0]) * dx + (my - A[1]) * dy) / l2)), d = Math.hypot(mx - A[0] - k * dx, my - A[1] - k * dy);
+            if (d < bd) { bd = d; best = { vis: it.m, label: it.label }; }
+        });
+        if (!best) {
+            rc.setFromCamera(new THREE.Vector2(mx / r.width * 2 - 1, -(my / r.height) * 2 + 1), camera);
+            const h = rc.intersectObjects(hoverItems.planes, false)[0];
+            if (h) best = { vis: h.object, label: h.object.userData.label };
+        }
+        if (!best) return clearHover();
+        if (hovered && hovered.vis !== best.vis) hovered.vis.visible = false;
+        hovered = best; best.vis.visible = true;
+        const tp = document.getElementById('tooltip'); tp.textContent = best.label; tp.style.display = 'block';
+        tp.style.left = Math.max(4, Math.min(mouse.x + 14, innerWidth - tp.offsetWidth - 8)) + 'px'; tp.style.top = (mouse.y + 16) + 'px';
+    }
+    function slotGeom() {
+        const { pl, pw } = dims(), sw = Math.max(0.1, num('slotW')), sl = Math.max(0.1, num('slotLen')), ds = Math.max(0, num('slotDist')),
+            cx = pl / 2 + num('slotShX'), cy = pw / 2 + num('slotShY'), h = sw / 2, l = sl / 2;
+        const rects = slotRot ? [[cx - l, cy - ds - h, cx + l, cy - ds + h], [cx - l, cy + ds - h, cx + l, cy + ds + h]]
+                              : [[cx - ds - h, cy - l, cx - ds + h, cy + l], [cx + ds - h, cy - l, cx + ds + h, cy + l]];
+        const bb = [Math.min(rects[0][0], rects[1][0]), Math.min(rects[0][1], rects[1][1]), Math.max(rects[0][2], rects[1][2]), Math.max(rects[0][3], rects[1][3])];
+        return { sw, sl, ds, rects, bb };
+    }
  
 
     // ===== Типы подложек: хелперы =====
@@ -489,12 +592,12 @@
         show('grp-hole', ty === 'center' || ty === 'offset' || ty === 'tab');
         show('grp-offset', ty === 'offset');
         show('grp-tab', ty === 'tab');
-        show('grp-custom', ty === 'custom');
+        show('grp-custom', ty === 'custom'); show('grp-slots', ty === 'slots');
     }
     // координаты векторов относительно левого-верхнего угла подложки
     function vecWorld(v) {
         return v.shapes.map(s => ({ closed: s.closed, pts: s.pts.map(([u, w]) => {
-            let a = u, b = w;
+            let a = v.fx ? 1 - u : u, b = v.fy ? 1 - w : w;
             for (let i = 0; i < v.rot; i++) [a, b] = [1 - b, a];
             return [v.left + a * v.w, v.top + b * v.h];
         }) }));
@@ -510,18 +613,24 @@
         vectors.forEach((v, i) => {
             const d = document.createElement('div');
             d.className = 'vec';
-            d.innerHTML = '<div class="vec-h"><b></b><span><button class="mini" data-a="rot">⟳ 90°</button><button class="mini red" data-a="del">✕</button></span></div>' +
+            d.innerHTML = '<div class="vec-h"><b></b><span><button class="mini" data-a="fx">⇋</button><button class="mini" data-a="fy">⇅</button><button class="mini" data-a="rot">⟳ 90°</button><button class="mini red" data-a="del">✕</button></span></div>' +
                 [['left', t.vLeft], ['top', t.vTop], ['w', t.vW], ['h', t.vH]].map(([k, l]) => `<div class="control-group"><label>${l}</label><input type="number" step="1" data-k="${k}" value="${r1(v[k])}"></div>`).join('') +
                 [['right', t.vRight], ['bottom', t.vBottom]].map(([k, l]) => `<div class="control-group"><label>${l}</label><input type="number" data-k="${k}" readonly></div>`).join('');
             d.querySelector('b').textContent = `${i + 1}. ${v.name}`;
             d.querySelectorAll('input:not([readonly])').forEach(inp => inp.addEventListener('input', () => {
                 const k = inp.dataset.k, val = parseFloat(inp.value) || 0;
-                v[k] = (k === 'w' || k === 'h') ? Math.max(0.1, val) : val;
+                if (k === 'w' || k === 'h') {
+                    const x = Math.max(0.1, val);
+                    if (k === 'w') { v.w = x; v.h = Math.max(0.01, x / v.ratio); } else { v.h = x; v.w = Math.max(0.01, x * v.ratio); }
+                    d.querySelector('[data-k=' + (k === 'w' ? 'h' : 'w') + ']').value = r1(k === 'w' ? v.h : v.w);
+                } else v[k] = val;
                 refreshVec(d, v); updateScene();
             }));
+            d.querySelector('[data-a=fx]').onclick = () => { v.fx = !v.fx; updateScene(); };
+            d.querySelector('[data-a=fy]').onclick = () => { v.fy = !v.fy; updateScene(); };
             d.querySelector('[data-a=rot]').onclick = () => {
                 const cx = v.left + v.w / 2, cy = v.top + v.h / 2;
-                [v.w, v.h] = [v.h, v.w]; v.rot = (v.rot + 1) % 4;
+                [v.w, v.h] = [v.h, v.w]; v.ratio = 1 / v.ratio; v.rot = (v.rot + 1) % 4;
                 v.left = r1(cx - v.w / 2); v.top = r1(cy - v.h / 2);
                 renderVectors(); updateScene();
             };
@@ -539,8 +648,8 @@
         let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
         shapes.forEach(s => s.pts.forEach(([x, y]) => { x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y); }));
         const nw = Math.max(x1 - x0, 1e-3), nh = Math.max(y1 - y0, 1e-3), { pl, pw } = dims();
-        const k = Math.min(1, pl * 0.8 / nw, pw * 0.8 / nh), w = Math.max(0.1, r1(nw * k)), h = Math.max(0.1, r1(nh * k));
-        vectors.push({ name, w, h, rot: 0, left: r1((pl - w) / 2), top: r1((pw - h) / 2),
+        const k = Math.min(1, pl * 0.8 / nw, pw * 0.8 / nh), w = Math.max(0.1, r1(nw * k)), h = Math.max(0.01, w * nh / nw);
+        vectors.push({ name, w, h, ratio: nw / nh, rot: 0, fx: false, fy: false, left: r1((pl - w) / 2), top: r1((pw - h) / 2),
             shapes: shapes.map(s => ({ closed: s.closed, pts: s.pts.map(([x, y]) => [(x - x0) / nw, (y - y0) / nh]) })) });
         renderVectors(); updateScene();
     }
@@ -549,7 +658,7 @@
         if (!f || vectors.length >= MAXV) return;
         try {
             const txt = await f.text();
-            addVector(f.name, /\.lbrn2$/i.test(f.name) ? parseLBRN(txt) : parseSVG(txt));
+            if (!/\.svg$/i.test(f.name)) throw new Error('svg only'); addVector(f.name, parseSVG(txt));
         } catch (err) { console.error(err); alert(dict[currentLang].vErr); }
     }
     function parseSVG(txt) {
@@ -584,47 +693,6 @@
         } finally { host.remove(); }
         return out;
     }
-    function parseLBRN(txt) {
-        const doc = new DOMParser().parseFromString(txt, 'text/xml'), out = [];
-        const mul = (p, c) => [p[0]*c[0]+p[2]*c[1], p[1]*c[0]+p[3]*c[1], p[0]*c[2]+p[2]*c[3], p[1]*c[2]+p[3]*c[3], p[0]*c[4]+p[2]*c[5]+p[4], p[1]*c[4]+p[3]*c[5]+p[5]];
-        const kid = (el, n) => [...el.children].find(c => c.tagName === n);
-        const walk = (parent, M) => [...parent.children].filter(c => c.tagName === 'Shape').forEach(sh => {
-            const xf = kid(sh, 'XForm'), M2 = mul(M, xf ? xf.textContent.trim().split(/\s+/).map(Number) : [1, 0, 0, 1, 0, 0]);
-            const tp = sh.getAttribute('Type'), tr = ([x, y]) => [M2[0]*x+M2[2]*y+M2[4], M2[1]*x+M2[3]*y+M2[5]];
-            if (tp === 'Group') { const ch = kid(sh, 'Children'); if (ch) walk(ch, M2); }
-            else if (tp === 'Rect') {
-                const w = +sh.getAttribute('W') / 2, h = +sh.getAttribute('H') / 2;
-                out.push({ pts: [[-w,-h],[w,-h],[w,h],[-w,h]].map(tr), closed: true });
-            } else if (tp === 'Ellipse') {
-                const rx = +sh.getAttribute('Rx'), ry = +sh.getAttribute('Ry'), a = [];
-                for (let i = 0; i < 64; i++) a.push(tr([rx * Math.cos(i / 32 * Math.PI), ry * Math.sin(i / 32 * Math.PI)]));
-                out.push({ pts: a, closed: true });
-            } else if (tp === 'Path') {
-                const vl = kid(sh, 'VertList'), pl = kid(sh, 'PrimList');
-                if (!vl || !pl) return;
-                const N = '([-\\d.eE+]+)';
-                const vs = vl.textContent.split('V').slice(1).map(s => {
-                    const m = s.match(new RegExp('^\\s*' + N + '\\s+' + N)), g = k => { const r = s.match(new RegExp(k + N)); return r ? +r[1] : null; };
-                    return { x: +m[1], y: +m[2], c0: [g('c0x'), g('c0y')], c1: [g('c1x'), g('c1y')] };
-                });
-                const P = []; let first = null, last = null;
-                for (const m of pl.textContent.matchAll(/([LB])(\d+) (\d+)/g)) {
-                    const A = vs[+m[2]], B = vs[+m[3]];
-                    if (first === null) { first = +m[2]; P.push([A.x, A.y]); }
-                    if (m[1] === 'B' && A.c1[1] != null && B.c0[1] != null) {
-                        for (let i = 1; i <= 12; i++) {
-                            const t = i / 12, u = 1 - t, f = (a, b, c, d) => u*u*u*a + 3*u*u*t*b + 3*u*t*t*c + t*t*t*d;
-                            P.push([f(A.x, A.c1[0], B.c0[0], B.x), f(A.y, A.c1[1], B.c0[1], B.y)]);
-                        }
-                    } else P.push([B.x, B.y]);
-                    last = +m[3];
-                }
-                if (P.length) out.push({ pts: P.map(tr), closed: first === last && P.length > 2 });
-            }
-        });
-        walk(doc.documentElement, [1, 0, 0, 1, 0, 0]);
-        return out;
-    }
 
     window.addEventListener('DOMContentLoaded', () => {
         setLanguage(currentLang);
@@ -642,6 +710,7 @@
  
         renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(container.clientWidth, container.clientHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
         container.appendChild(renderer.domElement);
  
         controls = new THREE.OrbitControls(camera, renderer.domElement);
@@ -651,7 +720,7 @@
         let idleTimeout = null;
 
         controls.addEventListener('start', () => {
-            autoRotate = false;
+            autoRotate = false; dragging = true;
             isAnimatingCamera = false;
             // Если таймер уже был запущен, сбрасываем его, так как пользователь снова начал движение
             if (idleTimeout) {
@@ -661,6 +730,7 @@
         });
 
         controls.addEventListener('end', () => {
+            dragging = false;
             // Очищаем предыдущий таймер на всякий случай
             if (idleTimeout) clearTimeout(idleTimeout);
             
@@ -722,10 +792,29 @@
         });
 
  
+        // поля векторов создаются динамически, поэтому слушаем события на боковой панели
+        const pauseRotation = () => {
+            autoRotate = false;
+            if (idleTimeout) clearTimeout(idleTimeout);
+            idleTimeout = setTimeout(() => { autoRotate = true; }, 3000);
+        };
+        const sb = document.getElementById('sidebar');
+        sb.addEventListener('input', e => { if (e.target.closest('.vec')) pauseRotation(); });
+        sb.addEventListener('click', e => { if (e.target.closest('.vec button, #grp-slots button')) pauseRotation(); });
+
         updateScene();
         animate();
  
         window.addEventListener('resize', onWindowResize);
+        if (window.ResizeObserver) new ResizeObserver(onWindowResize).observe(container);
+        if (matchMedia('(hover:hover) and (pointer:fine)').matches) {
+            renderer.domElement.addEventListener('pointermove', e => { mouse = { x: e.clientX, y: e.clientY }; });
+            renderer.domElement.addEventListener('pointerleave', () => { mouse = null; clearHover(); });
+        }
+        if (matchMedia('(pointer:coarse)').matches) {
+            addEventListener('focusin', e => { if (/INPUT|SELECT/.test(e.target.tagName)) document.body.classList.add('kb'); });
+            addEventListener('focusout', () => document.body.classList.remove('kb'));
+        }
     }
 
     let targetCamPos = new THREE.Vector3();
@@ -852,6 +941,7 @@
  
     function updateScene() {
         updateTypeUI();
+        hoverItems.edges = []; hoverItems.planes = []; hovered = null;
         while(boxGroup.children.length > 0){ 
             boxGroup.remove(boxGroup.children[0]); 
         }
@@ -930,7 +1020,7 @@
         const insertL = Math.max(1, L - (T * 2) - 0.2);
         const insertW = Math.max(1, W - (T * 2) - 0.2);
         const ptype = getType(), D = dims();
-        let hole = null, insertMesh;
+        let hole = null, insertMesh, holes = [];
         if ((ptype === 'center' || ptype === 'tab') && hW > 0 && hH > 0 && hW < insertL && hH < insertW && (ptype !== 'tab' || hH / 2 < insertW / 2 - tabP().sd)) {
             hole = { x0: -hW / 2, z0: -hH / 2, x1: hW / 2, z1: hH / 2 };
         }
@@ -943,17 +1033,64 @@
                          x1: Math.min(insertL / 2 - 0.1, -D.pl / 2 + oL + hW), z1: Math.min(insertW / 2 - 0.1, -D.pw / 2 + oT + hH) };
             }
         }
+        if (hole) holes.push(hole);
+        if (ptype === 'slots') {
+            const g = slotGeom(), c = (v, lo, hi) => Math.min(Math.max(v, lo), hi), ax = insertL / 2 - 0.1, az = insertW / 2 - 0.1;
+            g.rects.forEach(r => {
+                const h = { x0: c(r[0] - D.pl / 2, -ax, ax), z0: c(r[1] - D.pw / 2, -az, az), x1: c(r[2] - D.pl / 2, -ax, ax), z1: c(r[3] - D.pw / 2, -az, az) };
+                if (h.x1 - h.x0 > 0.05 && h.z1 - h.z0 > 0.05) holes.push(h);
+            });
+            $('slLeft').value = r1(g.bb[0]); $('slTop').value = r1(g.bb[1]); $('slRight').value = r1(D.pl - g.bb[2]); $('slBottom').value = r1(D.pw - g.bb[3]);
+        }
         const tabOn = ptype === 'tab', K = tabOn ? tabP() : null;
-        if (hole || tabOn) {
+
+        // ===== Подсветка при наведении (только подложка; только десктоп) =====
+        const Yt = T + IT, nm = q => String(q).replace(/\s*[(:].*$/, ''), r2 = x => Math.round(x * 100) / 100;
+        const redM = new THREE.MeshBasicMaterial({ color: 0xff2020, depthTest: false });
+        const redP = new THREE.MeshBasicMaterial({ color: 0xff2020, transparent: true, opacity: 0.4, depthTest: false, depthWrite: false, side: THREE.DoubleSide });
+        const V = (x, y, dy = 0.12) => new THREE.Vector3(-D.pl / 2 + x, Yt + dy, -D.pw / 2 + y);
+        const he = (a, b, label) => {
+            const d = b.clone().sub(a), len = d.length(); if (len < 1e-3) return;
+            const m = new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.7, len, 6), redM);
+            m.position.copy(a).addScaledVector(d, 0.5); m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), d.normalize());
+            m.visible = false; m.renderOrder = 20; boxGroup.add(m); hoverItems.edges.push({ a, b, m, label });
+        };
+        const hp = (m, label) => { m.visible = false; m.renderOrder = 10; m.userData.label = label; boxGroup.add(m); hoverItems.planes.push(m); };
+        const hq = (pts, label) => { const g = new THREE.BufferGeometry().setFromPoints(pts); g.setIndex(pts.slice(2).flatMap((_, i) => [0, i + 1, i + 2])); hp(new THREE.Mesh(g, redP), label); };
+        const hShape = (pts, label, dy, hl = []) => {
+            const sh = new THREE.Shape(pts.map(([x, y]) => new THREE.Vector2(x, y)));
+            hl.forEach(q => sh.holes.push(new THREE.Path(q.map(([x, y]) => new THREE.Vector2(x, y)))));
+            const g = new THREE.ShapeGeometry(sh); g.rotateX(Math.PI / 2); g.translate(-D.pl / 2, Yt + dy, -D.pw / 2);
+            hp(new THREE.Mesh(g, redP), label);
+        };
+        const hR = (x0, y0, x1, y1, label, dy = 0.06) => { if (x1 - x0 > 0.05 && y1 - y0 > 0.05) hShape([[x0, y0], [x1, y0], [x1, y1], [x0, y1]], label, dy); };
+        const hRE = (x0, y0, x1, y1, lx, ly) => { he(V(x0, y0), V(x1, y0), lx); he(V(x0, y1), V(x1, y1), lx); he(V(x0, y0), V(x0, y1), ly); he(V(x1, y0), V(x1, y1), ly); };
+        const mg = (x0, y0, x1, y1, lb) => {
+            const f = (n, v) => `${n}: ${r2(v)}`;
+            hR(0, y0, x0, y1, f(lb[0], x0)); hR(x0, 0, x1, y0, f(lb[1], y0)); hR(x1, y0, D.pl, y1, f(lb[2], D.pl - x1)); hR(x0, y1, x1, D.pw, f(lb[3], D.pw - y1));
+        };
+        const hc = holes.map(h => [h.x0 + D.pl / 2, h.z0 + D.pw / 2, h.x1 + D.pl / 2, h.z1 + D.pw / 2]);
+        const outline = tabOn ? [[0, 0], [D.pl, 0], [D.pl, D.pw], [D.pl / 2 + K.tw / 2, D.pw], [D.pl / 2 + K.tw / 2, D.pw - K.sd], [D.pl / 2 - K.tw / 2, D.pw - K.sd], [D.pl / 2 - K.tw / 2, D.pw], [0, D.pw]] : [[0, 0], [D.pl, 0], [D.pl, D.pw], [0, D.pw]];
+        hShape(outline, `${r2(D.pl)} × ${r2(D.pw)}`, 0.03, hc.map(([a, b, c, d]) => [[a, b], [c, b], [c, d], [a, d]]));
+        const lx = `${t.lblW}: ${r2(D.pl)}`, lz = `${t.lblL}: ${r2(D.pw)}`;
+        he(V(0, 0), V(D.pl, 0), lx); he(V(0, 0), V(0, D.pw), lz); he(V(D.pl, 0), V(D.pl, D.pw), lz);
+        if (tabOn) { he(V(0, D.pw), V(D.pl / 2 - K.tw / 2, D.pw), lx); he(V(D.pl / 2 + K.tw / 2, D.pw), V(D.pl, D.pw), lx); } else he(V(0, D.pw), V(D.pl, D.pw), lx);
+        [[0, 0], [D.pl, 0], [0, D.pw], [D.pl, D.pw]].forEach(([x, y]) => he(V(x, y, -IT), V(x, y, 0), `${nm(t.insertThick)}: ${r2(IT)}`));
+        if (ptype !== 'slots') hc.forEach(([a, b, c, d]) => { hR(a, b, c, d, `${r2(c - a)} × ${r2(d - b)}`, 0.1); hRE(a, b, c, d, `${nm(t.holeW)}: ${r2(c - a)}`, `${nm(t.holeH)}: ${r2(d - b)}`); });
+        if ((ptype === 'center' || ptype === 'offset') && hc[0]) mg(...hc[0], [nm(t.offL), nm(t.offT), nm(t.offR), nm(t.offB)]);
+        if (ptype === 'slots') {
+            const g = slotGeom(), lw = `${nm(t.slotW)}: ${r2(g.sw)}`, ll = `${nm(t.slotLen)}: ${r2(g.sl)}`;
+            g.rects.forEach(r => { hR(r[0], r[1], r[2], r[3], `${r2(r[2] - r[0])} × ${r2(r[3] - r[1])}`, 0.1); hRE(...r, slotRot ? ll : lw, slotRot ? lw : ll); });
+            mg(...g.bb, [nm(t.vLeft), nm(t.vTop), nm(t.vRight), nm(t.vBottom)]);
+            const [a, b] = g.rects, dl = `${nm(t.slotDist)}: ${r2(g.ds)}`;
+            if (slotRot) hR(g.bb[0], a[3], g.bb[2], b[1], dl, 0.08); else hR(a[2], g.bb[1], b[0], g.bb[3], dl, 0.08);
+        }
+        if (holes.length || tabOn) {
             const a = insertL / 2, b = insertW / 2, s = new THREE.Shape();
             s.moveTo(-a, -b); s.lineTo(a, -b); s.lineTo(a, b);
             if (tabOn) { s.lineTo(K.tw / 2, b); s.lineTo(K.tw / 2, b - K.sd); s.lineTo(-K.tw / 2, b - K.sd); s.lineTo(-K.tw / 2, b); }
             s.lineTo(-a, b); s.closePath();
-            if (hole) {
-                const h = new THREE.Path();
-                h.moveTo(hole.x0, hole.z0); h.lineTo(hole.x1, hole.z0); h.lineTo(hole.x1, hole.z1); h.lineTo(hole.x0, hole.z1); h.closePath();
-                s.holes.push(h);
-            }
+            holes.forEach(hole => { const h = new THREE.Path(); h.moveTo(hole.x0, hole.z0); h.lineTo(hole.x1, hole.z0); h.lineTo(hole.x1, hole.z1); h.lineTo(hole.x0, hole.z1); h.closePath(); s.holes.push(h); });
             const g = new THREE.ExtrudeGeometry(s, { depth: IT, bevelEnabled: false });
             g.rotateX(Math.PI / 2); g.center();
             insertMesh = new THREE.Mesh(g, insertMaterial);
@@ -961,13 +1098,24 @@
             insertMesh = new THREE.Mesh(new THREE.BoxGeometry(insertL, IT, insertW), insertMaterial);
         }
         insertMesh.position.set(0, T + IT / 2, 0);
-        if (hole) {
+        holes.forEach(hole => {
             const lineMat = new THREE.LineBasicMaterial({ color: 0xffaa00, transparent: true, opacity: 0.9 });
             [[hole.x0, hole.z0], [hole.x1, hole.z0], [hole.x1, hole.z1], [hole.x0, hole.z1]].forEach(([px, pz]) => {
                 insertMesh.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(px, -IT / 2, pz), new THREE.Vector3(px, IT / 2, pz)]), lineMat));
             });
-        }
+        });
         const zRoot = tabOn ? insertW / 2 - K.sd : 0;
+        if (ptype === 'slots') {
+            // свои контуры вместо EdgesGeometry: триангуляция двух коллинеарных отверстий давала лишнюю линию между щелями
+            const seg = [], ring = (x0, z0, x1, z1) => [-IT / 2, IT / 2].forEach(y => {
+                const c = [[x0, z0], [x1, z0], [x1, z1], [x0, z1]];
+                c.forEach((q, i) => { const n = c[(i + 1) % 4]; seg.push(new THREE.Vector3(q[0], y, q[1]), new THREE.Vector3(n[0], y, n[1])); });
+            });
+            ring(-insertL / 2, -insertW / 2, insertL / 2, insertW / 2);
+            [[-insertL / 2, -insertW / 2], [insertL / 2, -insertW / 2], [insertL / 2, insertW / 2], [-insertL / 2, insertW / 2]].forEach(([x, z]) => seg.push(new THREE.Vector3(x, -IT / 2, z), new THREE.Vector3(x, IT / 2, z)));
+            holes.forEach(h => ring(h.x0, h.z0, h.x1, h.z1));
+            insertMesh.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(seg), new THREE.LineBasicMaterial({ color: 0xffaa00, transparent: true, opacity: 0.9 })));
+        } else
         addEdges(insertMesh, 0xffaa00, 0.9, 1, tabOn ? (q1, q2) => Math.abs(q1.z - zRoot) < 1e-3 && Math.abs(q2.z - zRoot) < 1e-3 && Math.abs(q1.x - q2.x) > 1 : null);
         boxGroup.add(insertMesh);
 
@@ -1002,11 +1150,27 @@
             boxGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(
                 [pt(2, -hw), pt(2, hw), pt(2 + K.pLen, hw), pt(2 + K.pLen, -hw), pt(2, -hw)]),
                 new THREE.LineBasicMaterial({ color: 0xe0e0e0 })));
+            const tw2 = K.tw / 2, nl = `${nm(t.tabW)}: ${r2(K.tw)}`;
+            { const pos = [], idx = [];
+              top.forEach(([z, y], i) => { pos.push(-tw2, y, z, tw2, y, z); if (i) { const a = 2 * i; idx.push(a - 2, a - 1, a + 1, a - 2, a + 1, a); } });
+              const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setIndex(idx); hp(new THREE.Mesh(g, redP), nl); }
+            hq([pt(2, -hw), pt(2, hw), pt(2 + K.pLen, hw), pt(2 + K.pLen, -hw)], `${r2(K.pWid)} × ${r2(K.pLen)}`);
+            he(pt(2, -hw), pt(2, hw), `${nm(t.tabW)}: ${r2(K.pWid)}`); he(pt(2 + K.pLen, -hw), pt(2 + K.pLen, hw), `${nm(t.tabW)}: ${r2(K.pWid)}`);
+            he(pt(2, -hw), pt(2 + K.pLen, -hw), `${nm(t.tabL)}: ${r2(K.pLen)}`); he(pt(2, hw), pt(2 + K.pLen, hw), `${nm(t.tabL)}: ${r2(K.pLen)}`);
+            he(new THREE.Vector3(-tw2, my, mz), new THREE.Vector3(tw2, my, mz), `${nm(t.bendP)}: ${r2(K.bp)}`);
+            he(V(D.pl / 2 - tw2, D.pw), V(D.pl / 2 + tw2, D.pw), nl);
+            [-tw2, tw2].forEach(dx => he(V(D.pl / 2 + dx, D.pw - K.sd), V(D.pl / 2 + dx, D.pw), `${nm(t.slotD)}: ${r2(K.sd)}`));
         }
 
         // Свои рисунки: контуры поверх подложки
         if (ptype === 'custom') {
             document.querySelectorAll('.vec').forEach((d, i) => vectors[i] && refreshVec(d, vectors[i]));
+            vectors.forEach(v => {
+                const x0 = v.left, y0 = v.top, x1 = v.left + v.w, y1 = v.top + v.h;
+                boxGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([V(x0, y0, 0.25), V(x1, y0, 0.25), V(x1, y1, 0.25), V(x0, y1, 0.25), V(x0, y0, 0.25)]), new THREE.LineBasicMaterial({ color: 0xffffff })));
+                hR(x0, y0, x1, y1, `${r2(v.w)} × ${r2(v.h)}`, 0.1); hRE(x0, y0, x1, y1, `${nm(t.vW)}: ${r2(v.w)}`, `${nm(t.vH)}: ${r2(v.h)}`);
+                mg(x0, y0, x1, y1, [nm(t.vLeft), nm(t.vTop), nm(t.vRight), nm(t.vBottom)]);
+            });
             vectors.forEach(v => vecWorld(v).forEach(s => {
                 const pts = s.pts.map(([x, y]) => new THREE.Vector3(-D.pl / 2 + x, T + IT + 0.2, -D.pw / 2 + y));
                 if (s.closed) pts.push(pts[0].clone());
@@ -1058,7 +1222,7 @@
     function animate() {
         requestAnimationFrame(animate);
 
-        if (autoRotate && boxGroup && !isAnimatingCamera) {
+        if (autoRotate && boxGroup && !isAnimatingCamera && !hovered) {
             boxGroup.rotation.y += 0.001;
         }
 
@@ -1073,15 +1237,9 @@
             }
         }
 
+        if (mouse) pick();
         controls.update();
         renderer.render(scene, camera);
-    }
- 
-    function onWindowResize() {
-        const container = document.getElementById('viewer');
-        camera.aspect = container.clientWidth / container.clientHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize(container.clientWidth, container.clientHeight);
     }
  
     // Общая функция генерации XML-строки проекта LightBurn
@@ -1159,7 +1317,9 @@
             return `    <Shape Type="Path" CutIndex="${ci}" VertID="${id}" PrimID="${id}">\n        <XForm>1 0 0 1 0 0</XForm>\n        <VertList>${pts.map(([x, y]) => `V${x} ${y}c0x1c1x1`).join('')}</VertList>\n        <PrimList>${p}</PrimList>\n    </Shape>\n`;
         };
         const wrap = s => `    <Shape Type="Group" CutIndex="0">\n        <XForm>1 0 0 1 0 0</XForm>\n        <Children>\n${s}        </Children>\n    </Shape>\n`;
-        const cx = (type === 'center' && hW > 0 && hH > 0) ? xInsert - T : xInsert, cy = yInsert;
+        let ex = 0;
+        if (type === 'custom') vectors.forEach(v => vecWorld(v).forEach(sp => sp.pts.forEach(([x]) => { ex = Math.max(ex, x - insertL); })));
+        const cx = xInsert - T - ex, cy = yInsert;
         const X0 = cx - insertL / 2, Y0 = cy - insertW / 2;
         if (type === 'center') {
             xml += (hW > 0 && hH > 0) ? wrap(rect(mat, insertL, insertW, cx, cy) + rect(mat, hW, hH, cx, cy)) : rect(26, insertL, insertW, cx, cy);
@@ -1173,9 +1333,12 @@
                 poly(mat, [[xl, y1 - k.sd], [xl, y1]], false) + poly(mat, [[xr, y1 - k.sd], [xr, y1]], false) +
                 poly(28, [[xl, yb], [xl + 3, yb]], false) + poly(28, [[xr - 3, yb], [xr, yb]], false) +
                 ((hW > 0 && hH > 0 && hW < insertL && hH / 2 < insertW / 2 - k.sd) ? rect(mat, hW, hH, cx, cy) : ''));
+        } else if (type === 'slots') {
+            const g = slotGeom();
+            xml += wrap(rect(mat, insertL, insertW, cx, cy) + g.rects.map(r => rect(mat, r[2] - r[0], r[3] - r[1], X0 + (r[0] + r[2]) / 2, Y0 + (r[1] + r[3]) / 2)).join(''));
         } else {
             let s = rect(mat, insertL, insertW, cx, cy);
-            vectors.forEach(v => vecWorld(v).forEach(sp => { s += poly(mat, sp.pts.map(([x, y]) => [r1(X0 + x), r1(Y0 + y)]), sp.closed); }));
+            vectors.forEach(v => vecWorld(v).forEach(sp => { s += poly(mat, sp.pts.map(([x, y]) => [Math.round((X0 + x) * 1000) / 1000, Math.round((Y0 + y) * 1000) / 1000]), sp.closed); }));
             xml += vectors.length ? wrap(s) : s;
         }
         xml += `    <Shape Type="Group" CutIndex="0">\n`;
