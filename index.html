@@ -14,6 +14,7 @@
             height: 100vh;
             height: 100dvh;
             overflow: hidden;
+            user-select: none;
         }
         #sidebar {
             width: 380px;
@@ -63,7 +64,7 @@
             flex-direction: column;
             gap: 5px;
         }
-        label { font-size: 13px; color: #bbb; }
+        label { font-size: 13px; color: #bbb; user-select: none;}
         input, select {
             background: #3c3c3c;
             border: 1px solid #555;
@@ -179,6 +180,125 @@
             html[dir="rtl"] #sidebar{border-right:none;border-left:1px solid #333}
         }
     </style>
+
+    <style id="ui2">
+        :root{--bg:#0e1015;--panel:#151821;--card:#1b1f2a;--card2:#222735;--line:#2b3140;--text:#e9ecf3;--muted:#8d95a8;--acc:#35d6ad;--acc2:#5b8cff;--r:14px;color-scheme:dark}
+        body{background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-tap-highlight-color:transparent}
+        #sidebar{background:var(--panel);border-color:var(--line);padding:16px;gap:12px;scrollbar-width:thin;scrollbar-color:#333a4b transparent}
+        @media(min-width:901px){#sidebar{width:clamp(340px,32vw,430px)}}
+        .lang-switcher{background:var(--card);padding:4px;border-radius:12px;border:1px solid var(--line);gap:4px;margin:0}
+        .lang-btn{background:transparent;border:0;color:var(--muted);border-radius:9px;padding:7px 4px;font-weight:600;margin:0}
+        .lang-btn:hover{background:var(--card2);color:var(--text)}
+        .lang-btn.active{background:var(--acc);color:#04201a}
+
+        /* ===== Liquid Glass: переключатель языков ===== */
+        #sidebar .lang-switcher{position:relative;direction:ltr;display:flex;flex-wrap:nowrap;gap:0;padding:4px;margin:0;border-radius:999px;
+            border:1px solid rgba(255,255,255,.07);background:#161a25;
+            box-shadow:inset 0 1px 3px rgba(0,0,0,.55),inset 0 -1px 0 rgba(255,255,255,.05);
+            touch-action:pan-y;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;cursor:pointer}
+        #sidebar .lang-btn{position:relative;z-index:1;flex:1 1 0;min-width:0;margin:0;padding:8px 4px;border:0!important;border-radius:999px;
+            background:transparent!important;color:#9aa3b8;font-weight:600;cursor:inherit;touch-action:pan-y;
+            -webkit-tap-highlight-color:transparent;transition:color .2s ease}
+        #sidebar .lang-btn:hover,#sidebar .lang-btn.active{background:transparent!important}
+        #sidebar .lang-btn:focus-visible{outline:2px solid var(--acc);outline-offset:-3px}
+        .lg-thumb{position:absolute;left:0;top:0;z-index:2;pointer-events:none;border-radius:999px;will-change:transform;
+            box-shadow:0 5px 14px rgba(0,0,0,.34),0 1px 3px rgba(0,0,0,.4);transition:box-shadow .25s ease}
+        .lg-lens{position:absolute;inset:0;border-radius:inherit;overflow:hidden;clip-path:inset(0 round 999px);
+            background:linear-gradient(180deg,#3a4259,#2b3248 55%,#343c54)}
+        .lg-row{position:absolute;left:0;top:0;will-change:transform}
+        .lg-row span{position:absolute;display:flex;align-items:center;justify-content:center;color:#fff;white-space:nowrap;direction:ltr}
+        .lg-gloss{position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+            background:linear-gradient(180deg,rgba(255,255,255,.26) 0,rgba(255,255,255,.05) 42%,rgba(255,255,255,0) 58%,rgba(255,255,255,.10) 100%)}
+        .lg-thumb::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+            box-shadow:inset 0 0 0 1px rgba(255,255,255,.26),inset 1.5px 2px 1px -1px rgba(255,255,255,.9),inset -1.5px -2px 1px -1px rgba(255,255,255,.5),inset 0 0 12px rgba(255,255,255,.12)}
+        .lang-switcher.grab .lg-thumb{box-shadow:0 12px 26px rgba(0,0,0,.42),0 2px 6px rgba(0,0,0,.35)}
+        .lang-switcher.grab .lg-gloss{background:linear-gradient(180deg,rgba(255,255,255,.34) 0,rgba(255,255,255,.07) 42%,rgba(255,255,255,0) 58%,rgba(255,255,255,.14) 100%)}
+        @media (color-gamut:p3){
+            .lg-thumb::after{box-shadow:inset 0 0 0 1px color(display-p3 1 1 1/.3),inset 1.5px 2px 1px -1px color(display-p3 1 1 1/.95),inset -1.5px -2px 1px -1px color(display-p3 .8 1 .95/.55),inset 0 0 12px color(display-p3 1 1 1/.14)}
+        }
+        @media (dynamic-range:high){
+            .lg-thumb{box-shadow:0 5px 14px rgba(0,0,0,.34),0 0 20px color(display-p3 .3 1 .85/.28)}
+            .lang-switcher.grab .lg-thumb{box-shadow:0 12px 26px rgba(0,0,0,.42),0 0 32px color(display-p3 .3 1 .85/.42)}
+        }
+        /* GPU-режим: рисует канвас (WebGPU/WebGL), DOM-кнопки остаются невидимыми ради доступности и ввода */
+        .lg-gpu{position:absolute;z-index:3;pointer-events:none;display:block}
+        #sidebar .lang-switcher.gpu{background:transparent;border-color:transparent;box-shadow:none}
+        #sidebar .lang-switcher.gpu .lang-btn{color:transparent}
+        .lang-switcher.gpu .lg-thumb{display:none}
+        .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:0 14px;flex:0 0 auto}
+        .card>h2{margin:0 -14px;padding:14px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);cursor:pointer;display:flex;justify-content:space-between;align-items:center;user-select:none}
+        .card>h2::after{content:"";width:7px;height:7px;border:solid var(--muted);border-width:0 2px 2px 0;transform:rotate(45deg);transition:transform .2s}
+        .card.closed>h2::after{transform:rotate(-45deg)}
+        
+        
+        input,select{background:#12151d;border:1px solid var(--line);border-radius:10px;padding:9px 11px;color:var(--text);transition:border-color .15s,box-shadow .15s}
+        input:focus,select:focus{outline:0;border-color:var(--acc);box-shadow:0 0 0 3px rgba(53,214,173,.18)}
+        input:read-only{background:transparent;border-style:dashed;color:var(--muted)}
+        select{-webkit-appearance:none;appearance:none;padding-right:34px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none' stroke='%238d95a8' stroke-width='2'%3E%3Cpath d='M1 1l5 5 5-5'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center}
+        html[dir=rtl] select{background-position:left 12px center;padding-right:11px;padding-left:34px}
+        label{color:var(--text)}
+        button{border-radius:10px;font-weight:600;transition:background .15s,transform .1s}
+        button:active{transform:scale(.97)}
+        .field{display:grid;grid-template-columns:1fr auto;align-items:center;gap:6px 10px}
+        .field>label{font-size:13px;line-height:1.3}
+        .field.ro>label{color:var(--muted)}
+        .field .num{display:flex;align-items:center;gap:6px}
+        .field input[type=number]{width:86px;text-align:center;font-variant-numeric:tabular-nums}
+        .field.ro input{width:86px}
+        .stp{display:none}
+        @media(any-pointer:coarse){
+            .stp{display:grid}
+            .field{gap:2px 10px}
+            input[type=number]{-moz-appearance:textfield}
+            input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+        }
+        .sl{grid-column:1/-1;-webkit-appearance:none;appearance:none;width:100%;height:36px;min-height:0!important;margin:0;padding:0!important;background:transparent!important;border:0!important;box-shadow:none!important;touch-action:pan-y;--p:0%}
+        .sl::-webkit-slider-runnable-track{height:6px;border-radius:3px;background:linear-gradient(to right,var(--acc) var(--p),#303647 var(--p))}
+        .sl::-webkit-slider-thumb{-webkit-appearance:none;width:28px;height:28px;margin-top:-11px;border-radius:50%;background:#fff;border:0;box-shadow:0 0 0 4px rgba(53,214,173,.3),0 2px 6px rgba(0,0,0,.5);transition:transform .1s}
+        .sl:active::-webkit-slider-thumb{transform:scale(1.15)}
+        .sl::-moz-range-track{height:6px;border-radius:3px;background:#303647}
+        .sl::-moz-range-progress{height:6px;border-radius:3px;background:var(--acc)}
+        .sl::-moz-range-thumb{width:28px;height:28px;border-radius:50%;background:#fff;border:0;box-shadow:0 0 0 4px rgba(53,214,173,.3),0 2px 6px rgba(0,0,0,.5)}
+        .stp{width:36px;height:36px;min-height:0!important;margin:0!important;padding:0!important;place-items:center;font-size:20px;line-height:1;background:var(--card2);border:1px solid var(--line);color:var(--text)}
+        .vec{background:var(--card2);border-color:var(--line);border-radius:12px}
+        .vec-h{color:var(--acc);font-weight:600}
+        .mini{border-radius:8px;background:var(--card);border:1px solid var(--line)}
+        .mini.red{background:#5b2227;border-color:#7a2d33}
+        #btn-add-vec{background:var(--card2);border:1px dashed #3a4256;color:var(--acc)}
+        .button-group{position:sticky;bottom:-16px;margin:0 -16px -16px;padding:12px 16px calc(14px + env(safe-area-inset-bottom));background:linear-gradient(to top,var(--panel) 75%,rgba(21,24,33,0));gap:10px;z-index:5}
+        #btn-export{background:linear-gradient(135deg,#2fd0a6,#2a9d8f);color:#04201a;border:0}
+        #btn-share{background:transparent;border:1px solid var(--acc2);color:#9db8ff}
+        #btn-share:hover{background:rgba(91,140,255,.12)}
+        #info-hint{background:rgba(15,17,23,.7);backdrop-filter:blur(6px);border:1px solid var(--line);border-radius:10px;color:var(--muted)}
+        .cbody{display:grid;grid-template-rows:1fr;opacity:1;transition:grid-template-rows .32s cubic-bezier(.4,0,.2,1),opacity .25s ease}
+        .cin{min-height:0;overflow:hidden;margin:0 -8px;padding:0 8px}
+        .cpad{display:flex;flex-direction:column;gap:12px;padding:4px 0 14px}
+        .card.closed .cbody{grid-template-rows:0fr;opacity:0;visibility:hidden;transition:grid-template-rows .32s cubic-bezier(.4,0,.2,1),opacity .2s ease,visibility 0s .32s}
+        html[dir=rtl] .sl::-webkit-slider-runnable-track{background:linear-gradient(to left,var(--acc) var(--p),#303647 var(--p))}
+        #viewer.anim{transition:flex-basis .28s ease}
+        #grip{display:none;position:sticky;top:-16px;z-index:6;height:28px;margin:-16px -16px 0;flex:0 0 28px;touch-action:none;cursor:ns-resize;place-items:center;background:var(--panel);border-radius:20px 20px 0 0}
+        #grip::before{content:"";width:44px;height:5px;border-radius:3px;background:#3a4256}
+        @media(max-width:900px),(max-width:1180px) and (orientation:portrait){
+            body{flex-direction:column}
+            #viewer{order:-1;flex:0 0 44%;width:100%;min-height:150px}
+            #sidebar{width:100%;flex:1 1 auto;border:0;border-radius:20px 20px 0 0;margin-top:-18px;box-shadow:0 -10px 30px rgba(0,0,0,.45);padding:16px 14px calc(16px + env(safe-area-inset-bottom))}
+            #grip{display:grid}
+            .button-group{margin:0 -14px -16px}
+        }
+        @media(orientation:landscape) and (max-height:520px){
+            body{flex-direction:row}
+            #viewer{order:0;flex:1 1 auto;width:auto;min-height:0}
+            #sidebar{width:46%;flex:0 0 46%;margin-top:0;border-radius:0;box-shadow:none;border-right:1px solid var(--line)}
+            #grip{display:none}
+        }
+            html,body{overscroll-behavior:none}
+        #sidebar{overflow-x:hidden;overscroll-behavior:contain;touch-action:pan-y}
+        .card,.grp{min-width:0}
+        .field{grid-template-columns:minmax(0,1fr) auto}
+        #btn-share{display:none}
+        @media(hover:none) and (pointer:coarse){#btn-share{display:block}}
+        @media(pointer:fine){.sl{height:24px}.sl::-webkit-slider-thumb{width:18px;height:18px;margin-top:-6px}.sl::-moz-range-thumb{width:18px;height:18px}}
+    </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 </head>
@@ -186,10 +306,10 @@
  
     <div id="sidebar">
         <div class="lang-switcher">
-            <button class="lang-btn" id="btn-ru" onclick="setLanguage('ru')">РУС</button>
-            <button class="lang-btn" id="btn-en" onclick="setLanguage('en')">ENG</button>
-            <button class="lang-btn" id="btn-ar" onclick="setLanguage('ar')">العربية</button>
-            <button class="lang-btn" id="btn-he" onclick="setLanguage('he')">עברית</button>
+            <button class="lang-btn" id="btn-ru" type="button">РУС</button>
+            <button class="lang-btn" id="btn-en" type="button">ENG</button>
+            <button class="lang-btn" id="btn-ar" type="button">العربية</button>
+            <button class="lang-btn" id="btn-he" type="button">עברית</button>
         </div>
  
         <h2 id="ui-title">Параметры аквариума</h2>
@@ -229,9 +349,9 @@
             <select id="insertType">
                 <option value="center" data-i="tCenter">Отверстие по центру</option>
                 <option value="offset" data-i="tOffset">Смещённое отверстие</option>
+                <option value="slots" id="opt-type-slots" data-i="optTypeSlots">Две продольные щели</option>
                 <option value="tab" data-i="tTab">С выступом (загиб)</option>
                 <option value="custom" data-i="tCustom">Свои рисунки (SVG)</option>
-                <option value="slots" id="opt-type-slots" data-i="optTypeSlots">Две продольные щели</option>
             </select>
         </div>
         <div class="grp" id="grp-hole">
@@ -243,6 +363,16 @@
             <label id="lbl-hole-h">Длина отверстия в подложке (0 - без дырки):</label>
             <input type="number" id="holeH" value="150" min="0">
         </div>
+            <div class="grp" id="grp-hmarg">
+            <div class="control-group">
+                <label data-i="hMx">Отступ отверстия от края слева/справа (mm):</label>
+                <input type="number" id="holeMx" value="0" step="0.1">
+            </div>
+            <div class="control-group">
+                <label data-i="hMy">Отступ отверстия от края сверху/снизу (mm):</label>
+                <input type="number" id="holeMy" value="0" step="0.1">
+            </div>
+            </div>
         </div>
         <div class="grp" id="grp-offset">
             <div class="control-group">
@@ -268,7 +398,7 @@
                 <input type="number" id="nameWid" value="100" min="1" max="500" step="1">
             </div>
             <div class="control-group">
-                <label data-i="tabL">Длина таблички (вдоль выступа, mm):</label>
+                <label data-i="tabL">Высота таблички (вдоль выступа, mm):</label>
                 <input type="number" id="nameLen" value="25" min="1" max="70" step="1">
             </div>
             <div class="control-group">
@@ -336,7 +466,7 @@
             offR: "Отступ справа (mm), авто:",
             offB: "Отступ снизу (mm), авто:",
             tabW: "Ширина таблички (поперёк выступа, mm):",
-            tabL: "Длина таблички (вдоль выступа, mm):",
+            tabL: "Высота таблички (вдоль выступа, mm):", hMx: "Отступ отверстия от края слева/справа (mm):", hMy: "Отступ отверстия от края сверху/снизу (mm):", gapVec: "Расстояние между векторами", ovlVec: "Наложение векторов",
             slotD: "Глубина прорези в подложку (mm):",
             bendP: "Центр сгиба (засечки) от начала прорези (mm):",
             addVec: "Добавить вектор",
@@ -345,7 +475,7 @@
             vRight: "Отступ справа (mm), авто",
             vBottom: "Отступ снизу (mm), авто",
             vW: "Ширина (mm)",
-            vH: "Высота (mm)",
+            vH: "Длина (mm)",
             vErr: "Не удалось прочитать файл (нужен SVG)",
             export: "Сохранить",
             share: "Поделиться",
@@ -385,7 +515,7 @@
             offR: "Right offset (mm), auto:",
             offB: "Bottom offset (mm), auto:",
             tabW: "Plate width (across the tab, mm):",
-            tabL: "Plate length (along the tab, mm):",
+            tabL: "Plate height (along the tab, mm):", hMx: "Hole margin from edge, left/right (mm):", hMy: "Hole margin from edge, top/bottom (mm):", gapVec: "Gap between vectors", ovlVec: "Vectors overlap",
             slotD: "Slot depth into insert (mm):",
             bendP: "Bend centre (tick marks) from slot start (mm):",
             addVec: "Add vector",
@@ -394,7 +524,7 @@
             vRight: "Right offset (mm), auto",
             vBottom: "Bottom offset (mm), auto",
             vW: "Width (mm)",
-            vH: "Height (mm)",
+            vH: "Length (mm)",
             vErr: "Could not read the file (SVG required)",
             export: "Save",
             share: "Share",
@@ -434,7 +564,7 @@
             offR: "מרחק מימין (mm), אוטומטי:",
             offB: "מרחק מלמטה (mm), אוטומטי:",
             tabW: "רוחב השלט (לרוחב הלשונית, mm):",
-            tabL: "אורך השלט (לאורך הלשונית, mm):",
+            tabL: "גובה השלט (לאורך הלשונית, mm):", hMx: "מרחק החור מהקצה, שמאל/ימין (mm):", hMy: "מרחק החור מהקצה, למעלה/למטה (mm):", gapVec: "מרחק בין וקטורים", ovlVec: "חפיפת וקטורים",
             slotD: "עומק החריץ במשטח (mm):",
             bendP: "מרכז הקיפול (סימנים) מתחילת החריץ (mm):",
             addVec: "הוסף וקטור",
@@ -443,7 +573,7 @@
             vRight: "מרחק מימין (mm), אוטומטי",
             vBottom: "מרחק מלמטה (mm), אוטומטי",
             vW: "רוחב (mm)",
-            vH: "גובה (mm)",
+            vH: "אורך (mm)",
             vErr: "לא ניתן לקרוא את הקובץ (נדרש SVG)",
             export: "שמור",
             share: "שתף",
@@ -471,9 +601,9 @@
         holeW: "عرض الفتحة في القاعدة (0 - بدون فتحة):", holeH: "طول الفتحة في القاعدة (0 - بدون فتحة):",
         insType: "نوع القاعدة:", tCenter: "فتحة في المنتصف", tOffset: "فتحة مُزاحة", tTab: "مع لسان مثني", tCustom: "رسومات خاصة (SVG)",
         offL: "إزاحة الفتحة من اليسار (mm):", offT: "إزاحة الفتحة من الأعلى (mm):", offR: "الإزاحة من اليمين (mm)، تلقائي:", offB: "الإزاحة من الأسفل (mm)، تلقائي:",
-        tabW: "عرض اللوحة (عرض اللسان، mm):", tabL: "طول اللوحة (على طول اللسان، mm):", slotD: "عمق الشق في القاعدة (mm):", bendP: "مركز الثني (علامات) من بداية الشق (mm):",
+        tabW: "عرض اللوحة (عرض اللسان، mm):", tabL: "ارتفاع اللوحة (على طول اللسان، mm):", hMx: "هامش الثقب عن الحافة يمين/يسار (mm):", hMy: "هامش الثقب عن الحافة أعلى/أسفل (mm):", gapVec: "المسافة بين المتجهات", ovlVec: "تداخل المتجهات", slotD: "عمق الشق في القاعدة (mm):", bendP: "مركز الثني (علامات) من بداية الشق (mm):",
         addVec: "إضافة متجه", vLeft: "الإزاحة من اليسار (mm)", vTop: "الإزاحة من الأعلى (mm)", vRight: "الإزاحة من اليمين (mm)، تلقائي", vBottom: "الإزاحة من الأسفل (mm)، تلقائي",
-        vW: "العرض (mm)", vH: "الارتفاع (mm)", vErr: "تعذّرت قراءة الملف (يلزم SVG)", export: "حفظ", share: "مشاركة",
+        vW: "العرض (mm)", vH: "الطول (mm)", vErr: "تعذّرت قراءة الملف (يلزم SVG)", export: "حفظ", share: "مشاركة",
         hint: "تدوير: الزر الأيسر | تحريك: الزر الأيمن | تكبير: العجلة", lblL: "الطول", lblW: "العرض", lblH: "الارتفاع", lblT: "السماكة",
         material: "أكريليك شفاف", materialBottom: "أكريليك أسود", materialMirror: "أكريليك مرآة", materialAlign: "محاذاة",
         shareMessage: "مخطط حوض سمك للقطع بالليزر", shareAlert: "تم رفض المشاركة أو حظرها، سيبدأ التنزيل...",
@@ -584,12 +714,12 @@
         const bpMin = arc / 2, bpMax = Math.max(bpMin, sd + arc / 2 - r - IT / 2);
         const bp = Math.min(Math.max(num('bendPos'), bpMin), bpMax);
         // свободные 2 мм вокруг таблички (с боков, у конца выступа и от конца сгиба)
-        const rem = Math.max(pLen + 4, sd - bp - arc / 2 + 1);
-        return { tw: Math.min(pWid + 4, pl - 1), sd, bp, rem, r, phi, arc, IT, pLen, pWid };
+        const rem = pLen + 4;
+        return { tw: Math.min(pWid + 4, pl - 1), sd, bp, rem, r, phi, arc, IT, pLen, pWid, ext: bp - sd + arc / 2 + rem };
     }
     function updateTypeUI() {
         const ty = getType(), show = (id, c) => $(id).style.display = c ? 'flex' : 'none';
-        show('grp-hole', ty === 'center' || ty === 'offset' || ty === 'tab');
+        show('grp-hole', ty === 'center' || ty === 'offset' || ty === 'tab'); show('grp-hmarg', ty === 'center' || ty === 'tab');
         show('grp-offset', ty === 'offset');
         show('grp-tab', ty === 'tab');
         show('grp-custom', ty === 'custom'); show('grp-slots', ty === 'slots');
@@ -1049,25 +1179,26 @@
         const redM = new THREE.MeshBasicMaterial({ color: 0xff2020, depthTest: false });
         const redP = new THREE.MeshBasicMaterial({ color: 0xff2020, transparent: true, opacity: 0.4, depthTest: false, depthWrite: false, side: THREE.DoubleSide });
         const V = (x, y, dy = 0.12) => new THREE.Vector3(-D.pl / 2 + x, Yt + dy, -D.pw / 2 + y);
-        const he = (a, b, label) => {
+        const C = (key, ...ops) => ({ key, ops }), o = (id, s = 1) => ({ id, s }), ov_ = (v, k, s = 1) => ({ v, k, s });
+        const he = (a, b, label, ctl, pri = 0) => {
             const d = b.clone().sub(a), len = d.length(); if (len < 1e-3) return;
             const m = new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.7, len, 6), redM);
             m.position.copy(a).addScaledVector(d, 0.5); m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), d.normalize());
-            m.visible = false; m.renderOrder = 20; boxGroup.add(m); hoverItems.edges.push({ a, b, m, label });
+            m.visible = false; m.renderOrder = 20; boxGroup.add(m); hoverItems.edges.push({ a, b, m, label, ctl, pri });
         };
-        const hp = (m, label) => { m.visible = false; m.renderOrder = 10; m.userData.label = label; boxGroup.add(m); hoverItems.planes.push(m); };
-        const hq = (pts, label) => { const g = new THREE.BufferGeometry().setFromPoints(pts); g.setIndex(pts.slice(2).flatMap((_, i) => [0, i + 1, i + 2])); hp(new THREE.Mesh(g, redP), label); };
-        const hShape = (pts, label, dy, hl = []) => {
+        const hp = (m, label, ctl) => { m.visible = false; m.renderOrder = 10; m.userData.label = label; m.userData.ctl = ctl; boxGroup.add(m); hoverItems.planes.push(m); };
+        const hq = (pts, label, ctl) => { const g = new THREE.BufferGeometry().setFromPoints(pts); g.setIndex(pts.slice(2).flatMap((_, i) => [0, i + 1, i + 2])); hp(new THREE.Mesh(g, redP), label, ctl); };
+        const hShape = (pts, label, dy, hl = [], ctl) => {
             const sh = new THREE.Shape(pts.map(([x, y]) => new THREE.Vector2(x, y)));
             hl.forEach(q => sh.holes.push(new THREE.Path(q.map(([x, y]) => new THREE.Vector2(x, y)))));
             const g = new THREE.ShapeGeometry(sh); g.rotateX(Math.PI / 2); g.translate(-D.pl / 2, Yt + dy, -D.pw / 2);
-            hp(new THREE.Mesh(g, redP), label);
+            hp(new THREE.Mesh(g, redP), label, ctl);
         };
-        const hR = (x0, y0, x1, y1, label, dy = 0.06) => { if (x1 - x0 > 0.05 && y1 - y0 > 0.05) hShape([[x0, y0], [x1, y0], [x1, y1], [x0, y1]], label, dy); };
-        const hRE = (x0, y0, x1, y1, lx, ly) => { he(V(x0, y0), V(x1, y0), lx); he(V(x0, y1), V(x1, y1), lx); he(V(x0, y0), V(x0, y1), ly); he(V(x1, y0), V(x1, y1), ly); };
-        const mg = (x0, y0, x1, y1, lb) => {
+        const hR = (x0, y0, x1, y1, label, dy = 0.06, ctl) => { if (x1 - x0 > 0.05 && y1 - y0 > 0.05) hShape([[x0, y0], [x1, y0], [x1, y1], [x0, y1]], label, dy, [], ctl); };
+        const hRE = (x0, y0, x1, y1, lx, ly, cx, cy) => { he(V(x0, y0), V(x1, y0), lx, cx); he(V(x0, y1), V(x1, y1), lx, cx); he(V(x0, y0), V(x0, y1), ly, cy); he(V(x1, y0), V(x1, y1), ly, cy); };
+        const mg = (x0, y0, x1, y1, lb, cs = []) => {
             const f = (n, v) => `${n}: ${r2(v)}`;
-            hR(0, y0, x0, y1, f(lb[0], x0)); hR(x0, 0, x1, y0, f(lb[1], y0)); hR(x1, y0, D.pl, y1, f(lb[2], D.pl - x1)); hR(x0, y1, x1, D.pw, f(lb[3], D.pw - y1));
+            hR(0, y0, x0, y1, f(lb[0], x0), 0.06, cs[0]); hR(x0, 0, x1, y0, f(lb[1], y0), 0.06, cs[1]); hR(x1, y0, D.pl, y1, f(lb[2], D.pl - x1), 0.06, cs[2]); hR(x0, y1, x1, D.pw, f(lb[3], D.pw - y1), 0.06, cs[3]);
         };
         const hc = holes.map(h => [h.x0 + D.pl / 2, h.z0 + D.pw / 2, h.x1 + D.pl / 2, h.z1 + D.pw / 2]);
         const outline = tabOn ? [[0, 0], [D.pl, 0], [D.pl, D.pw], [D.pl / 2 + K.tw / 2, D.pw], [D.pl / 2 + K.tw / 2, D.pw - K.sd], [D.pl / 2 - K.tw / 2, D.pw - K.sd], [D.pl / 2 - K.tw / 2, D.pw], [0, D.pw]] : [[0, 0], [D.pl, 0], [D.pl, D.pw], [0, D.pw]];
@@ -1075,21 +1206,25 @@
         const lx = `${t.lblW}: ${r2(D.pl)}`, lz = `${t.lblL}: ${r2(D.pw)}`;
         he(V(0, 0), V(D.pl, 0), lx); he(V(0, 0), V(0, D.pw), lz); he(V(D.pl, 0), V(D.pl, D.pw), lz);
         if (tabOn) { he(V(0, D.pw), V(D.pl / 2 - K.tw / 2, D.pw), lx); he(V(D.pl / 2 + K.tw / 2, D.pw), V(D.pl, D.pw), lx); } else he(V(0, D.pw), V(D.pl, D.pw), lx);
-        [[0, 0], [D.pl, 0], [0, D.pw], [D.pl, D.pw]].forEach(([x, y]) => he(V(x, y, -IT), V(x, y, 0), `${nm(t.insertThick)}: ${r2(IT)}`));
-        if (ptype !== 'slots') hc.forEach(([a, b, c, d]) => { hR(a, b, c, d, `${r2(c - a)} × ${r2(d - b)}`, 0.1); hRE(a, b, c, d, `${nm(t.holeW)}: ${r2(c - a)}`, `${nm(t.holeH)}: ${r2(d - b)}`); });
-        if ((ptype === 'center' || ptype === 'offset') && hc[0]) mg(...hc[0], [nm(t.offL), nm(t.offT), nm(t.offR), nm(t.offB)]);
+        [[0, 0], [D.pl, 0], [0, D.pw], [D.pl, D.pw]].forEach(([x, y]) => he(V(x, y, -IT), V(x, y, 0), `${nm(t.insertThick)}: ${r2(IT)}`, C('p:IT', o('insertThickness'))));
+        if (ptype !== 'slots') hc.forEach(([a, b, c, d]) => { hR(a, b, c, d, `${r2(c - a)} × ${r2(d - b)}`, 0.1, C('p:holeWH', o('holeW'), o('holeH'))); hRE(a, b, c, d, `${nm(t.holeW)}: ${r2(c - a)}`, `${nm(t.holeH)}: ${r2(d - b)}`, C('p:holeW', o('holeW')), C('p:holeH', o('holeH'))); });
+        if ((ptype === 'center' || ptype === 'offset' || ptype === 'tab') && hc[0]) {
+            const cs = ptype === 'offset' ? [C('m:l', o('offLeft')), C('m:t', o('offTop')), C('m:r', o('offLeft', -1)), C('m:b', o('offTop', -1))]
+                : [C('m:x', o('holeMx')), C('m:y', o('holeMy')), C('m:x', o('holeMx')), C('m:y', o('holeMy'))];
+            mg(...hc[0], [nm(t.offL), nm(t.offT), nm(t.offR), nm(t.offB)], cs);
+        }
         if (ptype === 'slots') {
             const g = slotGeom(), lw = `${nm(t.slotW)}: ${r2(g.sw)}`, ll = `${nm(t.slotLen)}: ${r2(g.sl)}`;
-            g.rects.forEach(r => { hR(r[0], r[1], r[2], r[3], `${r2(r[2] - r[0])} × ${r2(r[3] - r[1])}`, 0.1); hRE(...r, slotRot ? ll : lw, slotRot ? lw : ll); });
-            mg(...g.bb, [nm(t.vLeft), nm(t.vTop), nm(t.vRight), nm(t.vBottom)]);
+            g.rects.forEach(r => { hR(r[0], r[1], r[2], r[3], `${r2(r[2] - r[0])} × ${r2(r[3] - r[1])}`, 0.1, C('p:slotWL', o('slotW'), o('slotLen'))); hRE(...r, slotRot ? ll : lw, slotRot ? lw : ll, slotRot ? C('p:slotLen', o('slotLen')) : C('p:slotW', o('slotW')), slotRot ? C('p:slotW', o('slotW')) : C('p:slotLen', o('slotLen'))); });
+            mg(...g.bb, [nm(t.vLeft), nm(t.vTop), nm(t.vRight), nm(t.vBottom)], [C('m:sx', o('slotShX')), C('m:sy', o('slotShY')), C('m:sx', o('slotShX', -1)), C('m:sy', o('slotShY', -1))]);
             const [a, b] = g.rects, dl = `${nm(t.slotDist)}: ${r2(g.ds)}`;
-            if (slotRot) hR(g.bb[0], a[3], g.bb[2], b[1], dl, 0.08); else hR(a[2], g.bb[1], b[0], g.bb[3], dl, 0.08);
+            if (slotRot) hR(g.bb[0], a[3], g.bb[2], b[1], dl, 0.08, C('p:slotDist', o('slotDist'))); else hR(a[2], g.bb[1], b[0], g.bb[3], dl, 0.08, C('p:slotDist', o('slotDist')));
         }
         if (holes.length || tabOn) {
-            const a = insertL / 2, b = insertW / 2, s = new THREE.Shape();
-            s.moveTo(-a, -b); s.lineTo(a, -b); s.lineTo(a, b);
-            if (tabOn) { s.lineTo(K.tw / 2, b); s.lineTo(K.tw / 2, b - K.sd); s.lineTo(-K.tw / 2, b - K.sd); s.lineTo(-K.tw / 2, b); }
-            s.lineTo(-a, b); s.closePath();
+            const a = insertL / 2, b = insertW / 2, fz = b, s = new THREE.Shape();
+            s.moveTo(-a, -b); s.lineTo(a, -b); s.lineTo(a, fz);
+            if (tabOn) { s.lineTo(K.tw / 2, fz); s.lineTo(K.tw / 2, b - K.sd); s.lineTo(-K.tw / 2, b - K.sd); s.lineTo(-K.tw / 2, fz); }
+            s.lineTo(-a, fz); s.closePath();
             holes.forEach(hole => { const h = new THREE.Path(); h.moveTo(hole.x0, hole.z0); h.lineTo(hole.x1, hole.z0); h.lineTo(hole.x1, hole.z1); h.lineTo(hole.x0, hole.z1); h.closePath(); s.holes.push(h); });
             const g = new THREE.ExtrudeGeometry(s, { depth: IT, bevelEnabled: false });
             g.rotateX(Math.PI / 2); g.center();
@@ -1101,10 +1236,10 @@
         holes.forEach(hole => {
             const lineMat = new THREE.LineBasicMaterial({ color: 0xffaa00, transparent: true, opacity: 0.9 });
             [[hole.x0, hole.z0], [hole.x1, hole.z0], [hole.x1, hole.z1], [hole.x0, hole.z1]].forEach(([px, pz]) => {
-                insertMesh.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(px, -IT / 2, pz), new THREE.Vector3(px, IT / 2, pz)]), lineMat));
+                insertMesh.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(px, -IT / 2, pz - insertMesh.position.z), new THREE.Vector3(px, IT / 2, pz - insertMesh.position.z)]), lineMat));
             });
         });
-        const zRoot = tabOn ? insertW / 2 - K.sd : 0;
+        const zRoot = tabOn ? insertW / 2 - K.sd - insertMesh.position.z : 0;
         if (ptype === 'slots') {
             // свои контуры вместо EdgesGeometry: триангуляция двух коллинеарных отверстий давала лишнюю линию между щелями
             const seg = [], ring = (x0, z0, x1, z1) => [-IT / 2, IT / 2].forEach(y => {
@@ -1153,23 +1288,24 @@
             const tw2 = K.tw / 2, nl = `${nm(t.tabW)}: ${r2(K.tw)}`;
             { const pos = [], idx = [];
               top.forEach(([z, y], i) => { pos.push(-tw2, y, z, tw2, y, z); if (i) { const a = 2 * i; idx.push(a - 2, a - 1, a + 1, a - 2, a + 1, a); } });
-              const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setIndex(idx); hp(new THREE.Mesh(g, redP), nl); }
-            hq([pt(2, -hw), pt(2, hw), pt(2 + K.pLen, hw), pt(2 + K.pLen, -hw)], `${r2(K.pWid)} × ${r2(K.pLen)}`);
-            he(pt(2, -hw), pt(2, hw), `${nm(t.tabW)}: ${r2(K.pWid)}`); he(pt(2 + K.pLen, -hw), pt(2 + K.pLen, hw), `${nm(t.tabW)}: ${r2(K.pWid)}`);
-            he(pt(2, -hw), pt(2 + K.pLen, -hw), `${nm(t.tabL)}: ${r2(K.pLen)}`); he(pt(2, hw), pt(2 + K.pLen, hw), `${nm(t.tabL)}: ${r2(K.pLen)}`);
-            he(new THREE.Vector3(-tw2, my, mz), new THREE.Vector3(tw2, my, mz), `${nm(t.bendP)}: ${r2(K.bp)}`);
-            he(V(D.pl / 2 - tw2, D.pw), V(D.pl / 2 + tw2, D.pw), nl);
-            [-tw2, tw2].forEach(dx => he(V(D.pl / 2 + dx, D.pw - K.sd), V(D.pl / 2 + dx, D.pw), `${nm(t.slotD)}: ${r2(K.sd)}`));
+              const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setIndex(idx); hp(new THREE.Mesh(g, redP), nl, C('t:w', o('nameWid'))); }
+            hq([pt(2, -hw), pt(2, hw), pt(2 + K.pLen, hw), pt(2 + K.pLen, -hw)], `${r2(K.pWid)} × ${r2(K.pLen)}`, C('t:wl', o('nameWid'), o('nameLen')));
+            he(pt(2, -hw), pt(2, hw), `${nm(t.tabW)}: ${r2(K.pWid)}`, C('t:wid', o('nameWid'))); he(pt(2 + K.pLen, -hw), pt(2 + K.pLen, hw), `${nm(t.tabW)}: ${r2(K.pWid)}`, C('t:wid', o('nameWid')));
+            he(pt(2, -hw), pt(2 + K.pLen, -hw), `${nm(t.tabL)}: ${r2(K.pLen)}`, C('t:len', o('nameLen'))); he(pt(2, hw), pt(2 + K.pLen, hw), `${nm(t.tabL)}: ${r2(K.pLen)}`, C('t:len', o('nameLen')));
+            he(new THREE.Vector3(-tw2, my, mz), new THREE.Vector3(tw2, my, mz), `${nm(t.bendP)}: ${r2(K.bp)}`, C('t:bp', o('bendPos')));
+            he(V(D.pl / 2 - tw2, D.pw), V(D.pl / 2 + tw2, D.pw), nl, C('t:w', o('nameWid')));
+            const sdl = `${nm(t.slotD)}: ${r2(K.sd)}`, sdc = C('t:sd', o('slotDepth'));   // pri: прорезь выигрывает у близких рёбер таблички
+            [-tw2, tw2].forEach(dx => he(V(D.pl / 2 + dx, D.pw - K.sd), V(D.pl / 2 + dx, D.pw), sdl, sdc, 6));
+            he(V(D.pl / 2 - tw2, D.pw - K.sd), V(D.pl / 2 + tw2, D.pw - K.sd), sdl, sdc, 6);
         }
 
         // Свои рисунки: контуры поверх подложки
         if (ptype === 'custom') {
             document.querySelectorAll('.vec').forEach((d, i) => vectors[i] && refreshVec(d, vectors[i]));
-            vectors.forEach(v => {
+            vectors.forEach((v, vi) => {
                 const x0 = v.left, y0 = v.top, x1 = v.left + v.w, y1 = v.top + v.h;
                 boxGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([V(x0, y0, 0.25), V(x1, y0, 0.25), V(x1, y1, 0.25), V(x0, y1, 0.25), V(x0, y0, 0.25)]), new THREE.LineBasicMaterial({ color: 0xffffff })));
-                hR(x0, y0, x1, y1, `${r2(v.w)} × ${r2(v.h)}`, 0.1); hRE(x0, y0, x1, y1, `${nm(t.vW)}: ${r2(v.w)}`, `${nm(t.vH)}: ${r2(v.h)}`);
-                mg(x0, y0, x1, y1, [nm(t.vLeft), nm(t.vTop), nm(t.vRight), nm(t.vBottom)]);
+                hR(x0, y0, x1, y1, `${r2(v.w)} × ${r2(v.h)}`, 0.1, C('v' + vi + ':wh', ov_(vi, 'w'))); hRE(x0, y0, x1, y1, `${nm(t.vW)}: ${r2(v.w)}`, `${nm(t.vH)}: ${r2(v.h)}`, C('v' + vi + ':w', ov_(vi, 'w')), C('v' + vi + ':h', ov_(vi, 'h')));
             });
             vectors.forEach(v => vecWorld(v).forEach(s => {
                 const pts = s.pts.map(([x, y]) => new THREE.Vector3(-D.pl / 2 + x, T + IT + 0.2, -D.pw / 2 + y));
@@ -1307,6 +1443,7 @@
 
         let pid = 10;
         const mat = document.getElementById('insertMaterial').value === 'mirror' ? 1 : 25;
+        const plateIdx = document.getElementById('insertMaterial').value === 'mirror' ? 1 : 28; // подложка без отверстия: зеркало → 1, чёрный → 28
         const type = getType();
         const rect = (ci, w, h, x, y) => `    <Shape Type="Rect" CutIndex="${ci}" W="${w}" H="${h}" Cr="0">\n        <XForm>1 0 0 1 ${x} ${y}</XForm>\n    </Shape>\n`;
         const poly = (ci, pts, closed) => {
@@ -1322,15 +1459,15 @@
         const cx = xInsert - T - ex, cy = yInsert;
         const X0 = cx - insertL / 2, Y0 = cy - insertW / 2;
         if (type === 'center') {
-            xml += (hW > 0 && hH > 0) ? wrap(rect(mat, insertL, insertW, cx, cy) + rect(mat, hW, hH, cx, cy)) : rect(26, insertL, insertW, cx, cy);
+            xml += (hW > 0 && hH > 0) ? wrap(rect(mat, insertL, insertW, cx, cy) + rect(mat, hW, hH, cx, cy)) : rect(plateIdx, insertL, insertW, cx, cy);
         } else if (type === 'offset') {
             const oL = parseFloat(document.getElementById('offLeft').value) || 0, oT = parseFloat(document.getElementById('offTop').value) || 0;
-            xml += (hW > 0 && hH > 0) ? wrap(rect(mat, insertL, insertW, cx, cy) + rect(mat, hW, hH, X0 + oL + hW / 2, Y0 + oT + hH / 2)) : rect(mat, insertL, insertW, cx, cy);
+            xml += (hW > 0 && hH > 0) ? wrap(rect(mat, insertL, insertW, cx, cy) + rect(mat, hW, hH, X0 + oL + hW / 2, Y0 + oT + hH / 2)) : rect(plateIdx, insertL, insertW, cx, cy);
         } else if (type === 'tab') {
             const k = tabP(), xl = cx - k.tw / 2, xr = cx + k.tw / 2, y1 = Y0 + insertW, yb = y1 - k.sd + k.bp, tip = yb + k.arc / 2 + k.rem;
             xml += wrap(
                 poly(mat, [[X0, Y0], [X0 + insertL, Y0], [X0 + insertL, y1], [xr, y1], [xr, tip], [xl, tip], [xl, y1], [X0, y1]], true) +
-                poly(mat, [[xl, y1 - k.sd], [xl, y1]], false) + poly(mat, [[xr, y1 - k.sd], [xr, y1]], false) +
+                poly(mat, [[xl, y1 - k.sd], [xl, Math.min(y1, tip)]], false) + poly(mat, [[xr, y1 - k.sd], [xr, Math.min(y1, tip)]], false) +
                 poly(28, [[xl, yb], [xl + 3, yb]], false) + poly(28, [[xr - 3, yb], [xr, yb]], false) +
                 ((hW > 0 && hH > 0 && hW < insertL && hH / 2 < insertW / 2 - k.sd) ? rect(mat, hW, hH, cx, cy) : ''));
         } else if (type === 'slots') {
@@ -1353,28 +1490,33 @@
         xml += `        </Children>\n`;
         xml += `    </Shape>\n`;
 
-        xml += `    <Shape Type="Rect" CutIndex="26" W="${L}" H="${H}" Cr="0">\n`;
-        xml += `        <XForm>1 0 0 1 ${xBottom} ${yBottom + (H / 2) + (W / 2) + gap}</XForm>\n`;
-        xml += `    </Shape>\n`;
+        xml += `    <Shape Type="Group" CutIndex="0">\n`;
+        xml += `        <XForm>1 0 0 1 0 0</XForm>\n`;
+        xml += `        <Children>\n`;
+        xml += `            <Shape Type="Rect" CutIndex="26" W="${L}" H="${H}" Cr="0">\n`;
+        xml += `                <XForm>1 0 0 1 ${xBottom} ${yBottom + (H / 2) + (W / 2) + gap}</XForm>\n`;
+        xml += `            </Shape>\n`;
 
         const l1x1 = xBottom + (L / 2) - T, l1y1 = yBottom + (W / 2) + gap;
         const l1x2 = xBottom + (L / 2) - T, l1y2 = yBottom + (W / 2) + gap + H;
 
-        xml += `    <!-- Блок: Прямая линия -->\n`;
-        xml += `    <Shape Type="Path" CutIndex="28" VertID="0" PrimID="0">\n`;
-        xml += `        <XForm>1 0 0 1 0 0</XForm>\n`;
-        xml += `        <VertList>V${l1x1} ${l1y1}c0x1c1x${l1x1}c1y${l1y1}V${l1x2} ${l1y2}c0x${l1x2}c0y${l1y2}c1x1</VertList>\n`;
-        xml += `        <PrimList>L0 1</PrimList>\n`;
-        xml += `    </Shape>\n`;
+        xml += `            <!-- Блок: Прямая линия -->\n`;
+        xml += `            <Shape Type="Path" CutIndex="28" VertID="0" PrimID="0">\n`;
+        xml += `                <XForm>1 0 0 1 0 0</XForm>\n`;
+        xml += `                <VertList>V${l1x1} ${l1y1}c0x1c1x${l1x1}c1y${l1y1}V${l1x2} ${l1y2}c0x${l1x2}c0y${l1y2}c1x1</VertList>\n`;
+        xml += `                <PrimList>L0 1</PrimList>\n`;
+        xml += `            </Shape>\n`;
 
         const l2x1 = xBottom - (L / 2) + T, l2y1 = yBottom + (W / 2) + gap;
         const l2x2 = xBottom - (L / 2) + T, l2y2 = yBottom + (W / 2) + gap + H;
 
-        xml += `    <!-- Блок: Прямая линия -->\n`;
-        xml += `    <Shape Type="Path" CutIndex="28" VertID="1" PrimID="0">\n`;
-        xml += `        <XForm>1 0 0 1 0 0</XForm>\n`;
-        xml += `        <VertList>V${l2x1} ${l2y1}c0x1c1x${l2x1}c1y${l2y1}V${l2x2} ${l2y2}c0x${l2x2}c0y${l2y2}c1x1</VertList>\n`;
-        xml += `        <PrimList>L0 1</PrimList>\n`;
+        xml += `            <!-- Блок: Прямая линия -->\n`;
+        xml += `            <Shape Type="Path" CutIndex="28" VertID="1" PrimID="0">\n`;
+        xml += `                <XForm>1 0 0 1 0 0</XForm>\n`;
+        xml += `                <VertList>V${l2x1} ${l2y1}c0x1c1x${l2x1}c1y${l2y1}V${l2x2} ${l2y2}c0x${l2x2}c0y${l2y2}c1x1</VertList>\n`;
+        xml += `                <PrimList>L0 1</PrimList>\n`;
+        xml += `            </Shape>\n`;
+        xml += `        </Children>\n`;
         xml += `    </Shape>\n`;
 
         xml += `    <Shape Type="Rect" CutIndex="26" W="${H}" H="${W - (T * 2)}" Cr="0">\n`;
@@ -1439,6 +1581,797 @@
         exportToLBRN2();
     }
 }
+</script>
+
+<script>
+(() => {
+    const sb = document.getElementById('sidebar'), vw = document.getElementById('viewer');
+    const touchUI = matchMedia('(hover:none) and (pointer:coarse)').matches;
+    const M = 2, rd = x => Math.round(x * 100) / 100, N = id => parseFloat(document.getElementById(id).value) || 0;
+    const clampv = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+
+    // ---------- «трещотка»: вибрация только на сенсорных телефонах/планшетах ----------
+    const Haptic = (() => {
+        let last = 0, lab = null;
+        const ios = () => {
+            if (!lab) {
+                const i = document.createElement('input'); i.type = 'checkbox'; i.setAttribute('switch', '');
+                lab = document.createElement('label'); lab.setAttribute('aria-hidden', 'true'); lab.style.display = 'none';
+                lab.appendChild(i); document.head.appendChild(lab);
+            }
+            return lab;
+        };
+        return { tick(strong) {
+            if (!touchUI) return;
+            const n = performance.now();
+            if (n - last < 22) return; last = n;
+            if (navigator.vibrate) navigator.vibrate(strong ? 22 : 10);
+            else { ios().click(); if (strong) setTimeout(() => ios().click(), 40); }
+        } };
+    })();
+
+    // ---------- карточки (у каждой своя замкнутая переменная) и плавное сворачивание ----------
+    let inner = null;
+    const bg = sb.querySelector('.button-group'), ls = sb.querySelector('.lang-switcher');
+    [...sb.children].forEach(c => {
+        if (c === bg || c === ls) return;
+        if (c.tagName === 'H2') {
+            const cd = document.createElement('section'), body = document.createElement('div'), clip = document.createElement('div');
+            cd.className = 'card'; body.className = 'cbody'; clip.className = 'cin'; inner = document.createElement('div'); inner.className = 'cpad';
+            clip.appendChild(inner); body.appendChild(clip);
+            sb.insertBefore(cd, c); cd.append(c, body);
+            c.onclick = () => cd.classList.toggle('closed');
+            return;
+        }
+        if (inner) inner.appendChild(c);
+    });
+    const grip = Object.assign(document.createElement('div'), { id: 'grip' });
+    sb.prepend(grip);
+    let gy = 0, gh = 0;
+    let gripDrag = false;
+    const gripEnd = () => { if (gripDrag) { gripDrag = false; onWindowResize(); } };
+    grip.addEventListener('pointerup', gripEnd); grip.addEventListener('pointercancel', gripEnd);
+    grip.addEventListener('pointerdown', e => { grip.setPointerCapture(e.pointerId); gripDrag = true; vw.classList.remove('anim'); gy = e.clientY; gh = vw.getBoundingClientRect().height; });
+    grip.addEventListener('pointermove', e => {
+        if (!grip.hasPointerCapture(e.pointerId)) return;
+        vw.style.flex = '0 0 ' + Math.min(innerHeight * 0.78, Math.max(120, gh + e.clientY - gy)) + 'px';
+    });
+    grip.addEventListener('dblclick', () => { vw.classList.add('anim'); setTimeout(() => vw.classList.remove('anim'), 400); vw.style.flex = vw.getBoundingClientRect().height > innerHeight * 0.5 ? '0 0 30%' : '0 0 65%'; });
+    addEventListener('orientationchange', () => vw.style.flex = '');
+    matchMedia('(max-width:900px)').addEventListener('change', () => vw.style.flex = '');
+
+    // ---------- ограничения: ничего не выходит за подложку и не перекрывается ----------
+    function ctx() {
+        const d = dims(), IT = N('insertThickness') || 2, r = Math.max(IT * 2, 2), phi = Math.PI - TAB_ANGLE * Math.PI / 180;
+        return { ...d, IT, r, phi, arc: r * phi, H: N('height'), type: getType() };
+    }
+    function lim(id, c = ctx()) {
+        const { pl, pw, T, IT, r, phi, arc, H, type } = c, tab = type === 'tab';
+        const sd = N('slotDepth'), bp = N('bendPos'), pLen = N('nameLen'), hW = N('holeW'), hH = N('holeH');
+        const holeOn = hW > 0 && hH > 0;
+        const rot = slotRot, Ac = rot ? pw : pl, Aa = rot ? pl : pw;
+        const sc = Math.abs(N(rot ? 'slotShY' : 'slotShX')), sa = Math.abs(N(rot ? 'slotShX' : 'slotShY'));
+        const sw = N('slotW'), sl = N('slotLen'), ds = N('slotDist');
+        switch (id) {
+            case 'thickness': return [1, Math.min(20, (Math.min(N('length'), N('width')) - 40) / 2)];
+            case 'insertThickness': return [1, 20];
+            case 'length': case 'width': return [2 * T + 40, 2000];
+            case 'height': return [40, 2000];
+            case 'holeW': return [0, Math.max(1, pl - 2 * M)];
+            case 'holeH': { const lo = 0, mx = tab ? pw - 2 * Math.max(sd, r + IT / 2 + 0.5) - 2 * M : pw - 2 * M; return [lo, Math.max(lo, mx)]; }
+            case 'offLeft': return holeOn ? [M, Math.max(M, pl - hW - M)] : [0, pl];
+            case 'offTop': return holeOn ? [M, Math.max(M, pw - hH - M)] : [0, pw];
+            case 'nameWid': return [1, Math.max(1, pl - 8)];
+            case 'nameLen': return [1, 2000];
+            case 'slotDepth': {
+                const lo = r + IT / 2 + 0.5;
+                let hi = pw - 10;
+                if (tab && holeOn) hi = Math.min(hi, pw / 2 - hH / 2 - M);
+                return [lo, Math.max(lo, hi)];
+            }
+            case 'bendPos': return [arc / 2, Math.max(arc / 2, sd + arc / 2 - r - IT / 2)];
+            case 'holeMx': { const lo = (pl - lim('holeW', c)[1]) / 2; return [lo, Math.max(lo, (pl - 1) / 2)]; }
+            case 'holeMy': { const lo = (pw - lim('holeH', c)[1]) / 2; return [lo, Math.max(lo, (pw - 1) / 2)]; }
+            case 'slotW': return [1, Math.max(1, Math.min(2 * (ds - 1), 2 * (Ac / 2 - M - sc - ds)))];
+            case 'slotLen': return [1, Math.max(1, 2 * (Aa / 2 - M - sa))];
+            case 'slotDist': return [sw / 2 + 1, Math.max(sw / 2 + 1, Ac / 2 - M - sw / 2 - sc)];
+            case 'slotShX': case 'slotShY': {
+                const cross = (id === 'slotShX') !== rot, a = Math.max(0, cross ? Ac / 2 - M - ds - sw / 2 : Aa / 2 - M - sl / 2);
+                return [-a, a];
+            }
+        }
+        return null;
+    }
+    const IDS = ['thickness', 'length', 'width', 'height', 'insertThickness', 'holeW', 'holeH', 'offLeft', 'offTop', 'nameWid', 'slotDepth', 'bendPos', 'nameLen', 'slotW', 'slotLen', 'slotDist', 'slotShX', 'slotShY'];
+    function fixId(id, edited, final) {
+        const el = document.getElementById(id); if (!el) return true;
+        const v = parseFloat(el.value) || 0, [lo, hi] = lim(id);
+        if (edited && !final && v < lo) return false;      // пока вводят число — ждём blur/Enter
+        const nv = v > hi ? hi : v < lo ? lo : v;
+        if (nv !== v) el.value = rd(nv);
+        return true;
+    }
+    function fixVectors(ed, final) {
+        if (!vectors.length) return;
+        const d = dims(), boxes = [...document.querySelectorAll('.vec')], ei = ed ? boxes.indexOf(ed.closest('.vec')) : -1, ek = ed ? ed.dataset.k : null;
+        vectors.forEach((v, i) => {
+            v.left = clampv(v.left, 0, Math.max(0, d.pl - 1)); v.top = clampv(v.top, 0, Math.max(0, d.pw - 1));
+            const s = (i === ei && (ek === 'w' || ek === 'h'))
+                ? Math.min(1, (d.pl - v.left) / v.w, (d.pw - v.top) / v.h)
+                : Math.min(1, d.pl / v.w, d.pw / v.h);
+            if (s < 1) { v.w = Math.max(0.1, v.w * s); v.h = Math.max(0.1, v.h * s); }
+            v.left = clampv(v.left, 0, Math.max(0, d.pl - v.w)); v.top = clampv(v.top, 0, Math.max(0, d.pw - v.h));
+            const box = boxes[i]; if (!box) return;
+            ['left', 'top', 'w', 'h'].forEach(k => {
+                const inp = box.querySelector(`[data-k=${k}]`); if (!inp) return;
+                const nv = r1(v[k]);
+                if (!(i === ei && k === ek) || final || nv < (parseFloat(inp.value) || 0)) inp.value = nv;
+            });
+            refreshVec(box, v);
+        });
+    }
+    function enforce(ed, final) {
+        const sid = ed && ed.type === 'number' && ed.id && !ed.closest('.vec') ? ed.id : null;
+        if (sid && !fixId(sid, true, final)) return false;
+        if (sid === 'holeMx') $('holeW').value = rd(Math.max(0, dims().pl - 2 * N('holeMx')));
+        if (sid === 'holeMy') $('holeH').value = rd(Math.max(0, dims().pw - 2 * N('holeMy')));
+        for (let p = 0; p < 3; p++) IDS.forEach(id => { if (id !== sid) fixId(id, false, final); });
+        { const d = dims(); // отступы центрального отверстия всегда следуют за его размерами
+          if (!(sid === 'holeMx' && !final)) $('holeMx').value = rd((d.pl - N('holeW')) / 2);
+          if (!(sid === 'holeMy' && !final)) $('holeMy').value = rd((d.pw - N('holeH')) / 2); }
+        fixVectors(ed && ed.closest && ed.closest('.vec') ? ed : null, final);
+        return true;
+    }
+    let edited = null, finalPass = false, raf = 0;
+    sb.addEventListener('input', e => { if (e.target.type !== 'range') edited = e.target; }, true);
+    sb.addEventListener('change', e => {
+        if (e.target.type !== 'number') return;
+        edited = e.target; finalPass = true;
+        try { updateScene(); } finally { finalPass = false; }
+    });
+    const _us = updateScene;
+    updateScene = function () {
+        const ed = edited; edited = null;
+        if (enforce(ed, finalPass) !== false) _us();
+        syncAll();
+    };
+    // ---------- ползунки ----------
+    function rangeFor(i) {
+        const k = i.dataset.k, cur = parseFloat(i.value) || 0;
+        let r = null;
+        if (k) {
+            const d = dims(), v = vectors[[...document.querySelectorAll('.vec')].indexOf(i.closest('.vec'))];
+            if (v) r = { left: [0, d.pl - v.w], top: [0, d.pw - v.h],
+                w: [1, Math.min(d.pl - v.left, (d.pw - v.top) * v.w / v.h)], h: [1, Math.min(d.pw - v.top, (d.pl - v.left) * v.h / v.w)] }[k];
+        } else {
+            r = lim(i.id);
+            const cap = { length: 800, width: 800, height: 600, nameLen: 120 }[i.id];
+            if (r && cap) r = [r[0], Math.max(Math.min(r[1], cap), cur)];
+        }
+        if (!r) r = [0, Math.max(100, cur * 3)];
+        const lo = Math.ceil(r[0]), hi = Math.max(lo + 1, Math.floor(r[1]));
+        return [lo, hi];
+    }
+    const paint = s => s.style.setProperty('--p', ((s.value - s.min) / ((s.max - s.min) || 1) * 100) + '%');
+    function sync(g) {
+        const i = g._i, s = g._s, [mn, mx] = rangeFor(i);
+        s.min = mn; s.max = mx; s.step = parseFloat(i.step) || 1; s.value = parseFloat(i.value) || 0; paint(s);
+    }
+    const idx = s => { const st = +s.step || 1, n = Math.max(1, Math.round((s.max - s.min) / st / 40)); return Math.floor((s.value - s.min) / (st * n)); };
+    function enhance(root) {
+        root.querySelectorAll('.control-group:not([data-enh])').forEach(g => {
+            g.dataset.enh = 1;
+            const inp = g.querySelector('input[type=number]'), lab = g.querySelector('label');
+            if (!inp || !lab) return;
+            g.classList.add('field');
+            if (inp.readOnly) { g.classList.add('ro'); return; }
+            const num = document.createElement('div'); num.className = 'num';
+            const mk = (txt, dir) => {
+                const b = Object.assign(document.createElement('button'), { type: 'button', className: 'stp', textContent: txt });
+                b.onclick = () => {
+                    const st = parseFloat(inp.step) || 1;
+                    inp.value = rd((parseFloat(inp.value) || 0) + dir * st);
+                    inp.dispatchEvent(new Event('input', { bubbles: true })); inp.dispatchEvent(new Event('change', { bubbles: true }));
+                    Haptic.tick(false);
+                };
+                return b;
+            };
+            const s = Object.assign(document.createElement('input'), { type: 'range', className: 'sl' });
+            s.setAttribute('aria-label', lab.textContent);
+            num.append(mk('−', -1), inp, mk('+', 1));
+            g.append(num, s);
+            g._i = inp; g._s = s; sync(g);
+            s.addEventListener('pointerdown', () => { sync(g); s._k = idx(s); });
+            s.addEventListener('input', () => {
+                inp.value = s.value; paint(s);
+                inp.dispatchEvent(new Event('input', { bubbles: true }));
+                const k = idx(s);
+                if (k !== s._k) { s._k = k; Haptic.tick(k % 5 === 0 || +s.value <= +s.min || +s.value >= +s.max); }
+            });
+        });
+    }
+    function syncAll() {
+        cancelAnimationFrame(raf);
+        raf = requestAnimationFrame(() => sb.querySelectorAll('.field').forEach(g => g._s && g._s !== document.activeElement && sync(g)));
+    }
+    ['click'].forEach(ev => sb.addEventListener(ev, syncAll));
+    new MutationObserver(() => { enhance(sb); syncAll(); }).observe(sb, { childList: true, subtree: true });
+    enhance(sb);
+
+    // Размер вида меняется без чёрного кадра: сразу дорисовываем сцену; камеру подгоняем (плавно) только после жеста
+    onWindowResize = function () {
+        const w = vw.clientWidth, h = vw.clientHeight;
+        if (!w || !h || !renderer) return;
+        camera.aspect = w / h; camera.updateProjectionMatrix();
+        renderer.setSize(w, h);
+        renderer.render(scene, camera);
+        if (!gripDrag) fitCameraToAquarium(N('length') || 10, N('width') || 10, N('height') || 10);
+    };
+})();
+</script>
+<script>
+(() => {
+    const vw = document.getElementById('viewer');
+    const fine = () => matchMedia('(hover:hover) and (pointer:fine)').matches;
+    const nm = q => String(q).replace(/\s*[(:].*$/, ''), r2 = x => Math.round(x * 100) / 100;
+    const mk = () => {
+        const g = new THREE.PlaneGeometry(1, 1); g.rotateX(-Math.PI / 2);
+        const m = new THREE.Mesh(g, new THREE.MeshBasicMaterial({ color: 0xff2020, transparent: true, opacity: 0.4, depthTest: false, depthWrite: false, side: THREE.DoubleSide }));
+        m.renderOrder = 10; m.visible = false; return m;
+    };
+    const hoverMesh = mk(), selMesh = mk();
+    let sel = null, selLabel = '';
+    const Yt = () => (parseFloat($('thickness').value) || 2) + (parseFloat($('insertThickness').value) || 2);
+    function setRect(m, r) {
+        const D = dims(), w = Math.max(r[2] - r[0], 0.01), h = Math.max(r[3] - r[1], 0.01);
+        m.scale.set(w, 1, h); m.position.set(-D.pl / 2 + r[0] + w / 2, Yt() + 0.14, -D.pw / 2 + r[1] + h / 2);
+        if (m.parent !== boxGroup) boxGroup.add(m);
+        m.visible = true;
+    }
+    function plateAt(ray) {
+        const inv = boxGroup.matrixWorld.clone().invert(), o = ray.origin.clone().applyMatrix4(inv), d = ray.direction.clone().transformDirection(inv);
+        if (Math.abs(d.y) < 1e-6) return null;
+        const k = (Yt() - o.y) / d.y; if (k < 0) return null;
+        const p = o.addScaledVector(d, k), D = dims(), x = p.x + D.pl / 2, y = p.z + D.pw / 2;
+        return x >= 0 && x <= D.pl && y >= 0 && y <= D.pw ? [x, y] : null;
+    }
+    // ----- пространство между векторами / до края подложки / наложение -----
+    const rects = () => vectors.map((v, i) => ({ i, x0: v.left, y0: v.top, x1: v.left + v.w, y1: v.top + v.h }));
+    function dynKeyAt(px, py) {
+        const R = rects(), D = dims(), ins = R.filter(r => px >= r.x0 && px <= r.x1 && py >= r.y0 && py <= r.y1);
+        if (ins.length >= 2) return 'o:' + ins.map(r => r.i).join(',');
+        if (ins.length === 1) return null;
+        const row = R.filter(r => py >= r.y0 && py <= r.y1), col = R.filter(r => px >= r.x0 && px <= r.x1);
+        const L = row.filter(r => r.x1 <= px).sort((a, b) => b.x1 - a.x1)[0], Rr = row.filter(r => r.x0 >= px).sort((a, b) => a.x0 - b.x0)[0];
+        const U = col.filter(r => r.y1 <= py).sort((a, b) => b.y1 - a.y1)[0], Dn = col.filter(r => r.y0 >= py).sort((a, b) => a.y0 - b.y0)[0];
+        const c = [];   // [приоритет (0 = зазор между векторами), расстояние, ключ]
+        if (L && Rr) c.push([0, Rr.x0 - L.x1, `g:h:${L.i}:${Rr.i}`]); else { if (L) c.push([1, D.pl - L.x1, `e:r:${L.i}`]); if (Rr) c.push([1, Rr.x0, `e:l:${Rr.i}`]); }
+        if (U && Dn) c.push([0, Dn.y0 - U.y1, `g:v:${U.i}:${Dn.i}`]); else { if (U) c.push([1, D.pw - U.y1, `e:b:${U.i}`]); if (Dn) c.push([1, Dn.y0, `e:t:${Dn.i}`]); }
+        c.sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+        return c.length ? c[0][2] : null;
+    }
+    function dynInfo(key) {
+        const t = dict[currentLang], R = rects(), D = dims(), [k, a, b, c] = key.split(':');
+        const op = (v, kk, s) => ({ key, ops: [{ v, k: kk, s }] });
+        if (k === 'o') {
+            const ids = a.split(',').map(Number), rs = ids.map(i => R[i]); if (rs.some(x => !x)) return null;
+            const r = [Math.max(...rs.map(x => x.x0)), Math.max(...rs.map(x => x.y0)), Math.min(...rs.map(x => x.x1)), Math.min(...rs.map(x => x.y1))];
+            if (r[2] <= r[0] || r[3] <= r[1]) return null;
+            return { rect: r, label: `${t.ovlVec} ${ids.map(i => i + 1).join('+')}: ${r2(r[2] - r[0])} × ${r2(r[3] - r[1])}` };
+        }
+        if (k === 'g') {
+            const A = R[+b], B = R[+c]; if (!A || !B) return null;
+            if (a === 'h') return { rect: [A.x1, Math.max(A.y0, B.y0), B.x0, Math.min(A.y1, B.y1)], label: `${t.gapVec} ${+b + 1}–${+c + 1}: ${r2(B.x0 - A.x1)}`, ctl: op(+c, 'left', 1) };
+            return { rect: [Math.max(A.x0, B.x0), A.y1, Math.min(A.x1, B.x1), B.y0], label: `${t.gapVec} ${+b + 1}–${+c + 1}: ${r2(B.y0 - A.y1)}`, ctl: op(+c, 'top', 1) };
+        }
+        const vi = +b, Vv = R[vi]; if (!Vv) return null;
+        const n = `${vi + 1}. `;
+        if (a === 'r') return { rect: [Vv.x1, Vv.y0, D.pl, Vv.y1], label: `${n}${nm(t.vRight)}: ${r2(D.pl - Vv.x1)}`, ctl: op(vi, 'left', -1) };
+        if (a === 'l') return { rect: [0, Vv.y0, Vv.x0, Vv.y1], label: `${n}${nm(t.vLeft)}: ${r2(Vv.x0)}`, ctl: op(vi, 'left', 1) };
+        if (a === 'b') return { rect: [Vv.x0, Vv.y1, Vv.x1, D.pw], label: `${n}${nm(t.vBottom)}: ${r2(D.pw - Vv.y1)}`, ctl: op(vi, 'top', -1) };
+        if (a === 't') return { rect: [Vv.x0, 0, Vv.x1, Vv.y0], label: `${n}${nm(t.vTop)}: ${r2(Vv.y0)}`, ctl: op(vi, 'top', 1) };
+        return null;
+    }
+    const isDyn = k => /^[geo]:/.test(k);
+    function updateSel() {
+        if (!sel) { selMesh.visible = false; return; }
+        const k = sel.ctl.key; let found = false;
+        const upd = (vis, ctl, label) => {
+            if (ctl && ctl.key === k) { found = true; vis.visible = true; selLabel = label; } else if (!hovered || hovered.vis !== vis) vis.visible = false;
+        };
+        hoverItems.edges.forEach(it => upd(it.m, it.ctl, it.label));
+        hoverItems.planes.forEach(p => upd(p, p.userData.ctl, p.userData.label));
+        const di = isDyn(k) ? dynInfo(k) : null;
+        if (di) { found = true; setRect(selMesh, di.rect); selLabel = di.label; } else selMesh.visible = false;
+        if (!found) sel = null;
+    }
+    const tipAt = txt => {
+        const tp = document.getElementById('tooltip'); tp.textContent = txt; tp.style.display = 'block';
+        tp.style.left = Math.max(4, Math.min(mouse.x + 14, innerWidth - tp.offsetWidth - 8)) + 'px'; tp.style.top = (mouse.y + 16) + 'px';
+    };
+    const _ch = clearHover, hold = { vis: new THREE.Object3D(), label: '' };
+    let prevAuto = true;
+    const setSel = s => {
+        if (s && !sel) { prevAuto = autoRotate; autoRotate = false; }
+        if (!s && sel) {
+            autoRotate = prevAuto;
+            // гасим всё, что подсвечивала настройка (включая парные элементы)
+            hoverItems.edges.forEach(it => it.m.visible = false);
+            hoverItems.planes.forEach(p => p.visible = false);
+            hoverMesh.visible = false; hovered = null;
+        }
+        sel = s; if (!sel) { selMesh.visible = false; selLabel = ''; }
+    };
+    clearHover = function () {
+        _ch(); updateSel();
+        if (renderer) renderer.domElement.style.cursor = '';
+        if (sel && mouse && selLabel) tipAt('◉ ' + selLabel);
+    };
+    // что лежит под точкой (без побочных эффектов)
+    function findBest(cx, cy) {
+        const r = renderer.domElement.getBoundingClientRect(), mx = cx - r.left, my = cy - r.top;
+        boxGroup.updateMatrixWorld(true);
+        const sp = v => { const q = v.clone().applyMatrix4(boxGroup.matrixWorld).project(camera); return [(q.x + 1) / 2 * r.width, (1 - q.y) / 2 * r.height, q.z]; };
+        let best = null, bd = 8;
+        hoverItems.edges.forEach(it => {
+            const A = sp(it.a), B = sp(it.b); if (A[2] > 1 || B[2] > 1) return;
+            const dx = B[0] - A[0], dy = B[1] - A[1], l2 = dx * dx + dy * dy || 1, k = Math.max(0, Math.min(1, ((mx - A[0]) * dx + (my - A[1]) * dy) / l2)), d = Math.hypot(mx - A[0] - k * dx, my - A[1] - k * dy);
+            const ad = d - (it.pri || 0); if (ad < bd) { bd = ad; best = { vis: it.m, label: it.label, ctl: it.ctl }; }
+        });
+        if (!best) {
+            rc.setFromCamera(new THREE.Vector2(mx / r.width * 2 - 1, -(my / r.height) * 2 + 1), camera);
+            let dyn = null;
+            if (getType() === 'custom' && vectors.length) { const pp = plateAt(rc.ray); if (pp) { const k = dynKeyAt(pp[0], pp[1]); dyn = k && dynInfo(k); } }
+            if (dyn) { setRect(hoverMesh, dyn.rect); best = { vis: hoverMesh, label: dyn.label, ctl: dyn.ctl }; hoverMesh.visible = false; }
+            else { const h = rc.intersectObjects(hoverItems.planes, false)[0]; if (h) best = { vis: h.object, label: h.object.userData.label, ctl: h.object.userData.ctl }; }
+        }
+        return best;
+    }
+    pick = function () {
+        if (sel) {   // режим настройки: наведение на другие элементы выключено
+            _ch(); hovered = hold; updateSel();
+            if (sel && mouse) tipAt('◉ ' + selLabel);
+            return;
+        }
+        if (dragging || !(hoverItems.edges.length + hoverItems.planes.length)) return clearHover();
+        const best = findBest(mouse.x, mouse.y);
+        if (!best) return clearHover();
+        if (hovered && hovered.vis !== best.vis) hovered.vis.visible = false;
+        hovered = best; best.vis.visible = true;
+        tipAt(best.label + (best.ctl && fine() ? '  ⇅' : ''));
+        renderer.domElement.style.cursor = best.ctl && fine() ? 'pointer' : '';
+    };
+    // ----- «клик» → настроил колёсиком → «клик» в любом месте -----
+    let down = null;
+    vw.addEventListener('pointerdown', e => { if (e.button === 0) down = [e.clientX, e.clientY]; }, true);
+    addEventListener('pointerup', e => {
+        if (!fine() || !down || e.button !== 0) return;
+        const moved = Math.hypot(e.clientX - down[0], e.clientY - down[1]) > 5; down = null;
+        if (moved || !vw.contains(e.target)) return;
+        if (sel) { setSel(null); clearHover(); return; }
+        const best = hoverItems.edges.length + hoverItems.planes.length ? findBest(e.clientX, e.clientY) : null;
+        if (best && best.ctl) { setSel({ ctl: best.ctl }); mouse = { x: e.clientX, y: e.clientY }; if (hovered) hovered.vis.visible = false; hovered = hold; updateSel(); }
+    });
+    addEventListener('keydown', e => { if (e.key === 'Escape' && sel) { setSel(null); clearHover(); } });
+    function bump(op, amount) {
+        const el = op.id ? document.getElementById(op.id) : document.querySelectorAll('.vec')[op.v]?.querySelector(`[data-k=${op.k}]`);
+        if (!el) return;
+        el.value = r2((parseFloat(el.value) || 0) + op.s * amount);
+        el.dispatchEvent(new Event('input', { bubbles: true })); el.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+    let acc = 0;
+    vw.addEventListener('wheel', e => {
+        if (!sel || !sel.ctl.ops || !fine()) return;
+        e.preventDefault(); e.stopPropagation();
+        let n;
+        if (Math.abs(e.deltaY) >= 50) { n = Math.sign(e.deltaY); acc = 0; }
+        else { acc += e.deltaY; n = Math.trunc(acc / 40); acc -= n * 40; }
+        if (!n) return;
+        const unit = e.shiftKey ? 10 : (e.ctrlKey || e.altKey) ? 0.1 : 1;
+        sel.ctl.ops.forEach(op => bump(op, -n * unit));
+    }, { capture: true, passive: false });
+})();
+</script>
+<script>
+// ===== Liquid Glass переключатель языков: WebGPU → WebGL → CSS (запасной вариант) =====
+(() => {
+    const sw = document.querySelector('.lang-switcher');
+    if (!sw) return;
+    const btns = [...sw.querySelectorAll('.lang-btn')], codes = btns.map(b => b.id.replace('btn-', ''));
+
+    // --- запасной вариант: линза из CSS (если нет ни WebGPU, ни WebGL) ---
+    const thumb = document.createElement('div');
+    thumb.className = 'lg-thumb'; thumb.setAttribute('aria-hidden', 'true');
+    thumb.innerHTML = '<div class="lg-lens"><div class="lg-row"></div><div class="lg-gloss"></div></div>';
+    sw.appendChild(thumb);
+    const row = thumb.querySelector('.lg-row'), spans = btns.map(() => row.appendChild(document.createElement('span')));
+    sw.setAttribute('role', 'radiogroup'); btns.forEach(b => b.setAttribute('role', 'radio'));
+
+    const reduce = matchMedia('(prefers-reduced-motion:reduce)').matches;
+    const touch = matchMedia('(hover:none) and (pointer:coarse)').matches;
+    const clamp = (a, lo, hi) => Math.max(lo, Math.min(hi, a));
+
+    let hl = null;
+    const tick = () => {
+        if (!touch) return;
+        if (navigator.vibrate) { navigator.vibrate(5); return; }
+        if (!hl) {
+            const i = document.createElement('input'); i.type = 'checkbox'; i.setAttribute('switch', '');
+            hl = document.createElement('label'); hl.setAttribute('aria-hidden', 'true'); hl.style.display = 'none';
+            hl.appendChild(i); document.head.appendChild(hl);
+        }
+        hl.click();
+    };
+
+    let W = 0, H = 0, y = 0, centers = [], x = 0, v = 0, tx = 0, ps = 1, pt = 1, raf = 0, last = 0;
+    let grab = false, startPx = 0, off = 0, placed = false;
+
+    // ================= GPU =================
+    const PADX = 10, PADY = 14;                 // поле вокруг плашки под тень и преломление
+    let be = null, gcv = null, gsig = '', ox = 0, oy = 0, gs = 1;
+    const cA = document.createElement('canvas'), cB = document.createElement('canvas');
+
+    // Общая математика (в гамма-пространстве). hdr = 1 в SDR, 2 при HDR-дисплее: блики уходят выше белого.
+    const GLSL_V = 'attribute vec2 aP;void main(){gl_Position=vec4(aP,0.0,1.0);}';
+    const GLSL_F = `
+precision highp float;
+uniform vec4 uA; uniform vec4 uB; uniform vec4 uC;
+uniform sampler2D tA; uniform sampler2D tB;
+float sdb(vec2 q, vec2 hb, float r){
+  vec2 k = abs(q) - hb + vec2(r);
+  return min(max(k.x,k.y),0.0) + length(max(k,vec2(0.0))) - r;
+}
+void main(){
+  vec2 res = uA.xy; float dpr = uA.z; float hdr = uA.w;
+  vec2 c = uB.xy; vec2 hb = uB.zw; float press = uC.x; float vel = uC.y;
+  vec2 p = vec2(gl_FragCoord.x, res.y - gl_FragCoord.y);
+  vec2 uv = p / res;
+  vec2 q = p - c;
+  float r = min(hb.x, hb.y);
+  float d = sdb(q, hb, r);
+  vec4 base = texture2D(tA, uv);
+  float ds = sdb(q - vec2(0.0, 5.0*dpr*(1.0+press)), hb, r);
+  float sh = 0.30 * (1.0 - smoothstep(0.0, 18.0*dpr*(1.0+press), ds));
+  vec4 outc = vec4(base.rgb*(1.0-sh), base.a*(1.0-sh)+sh);
+  float gl = exp(-max(d,0.0)/(12.0*dpr)) * 0.16 * (hdr-1.0) * (0.5+0.5*press);
+  outc.rgb += vec3(0.25,1.0,0.8)*gl;
+  float depth = max(-d, 0.0);
+  float bezel = r*0.75;
+  float t = clamp(depth/bezel, 0.0, 1.0);
+  vec2 gr = vec2(sdb(q+vec2(1.0,0.0),hb,r)-sdb(q-vec2(1.0,0.0),hb,r), sdb(q+vec2(0.0,1.0),hb,r)-sdb(q-vec2(0.0,1.0),hb,r));
+  vec2 n = gr / max(length(gr), 0.0001);
+  float prof = pow(1.0-t, 2.4);
+  float mag = 1.10 + 0.10*press;
+  float strength = bezel*(1.1+0.5*press);
+  vec2 sp = c + q/mag + n*prof*strength;
+  vec2 dv = n*(0.05+0.04*press)*prof*strength;
+  vec3 col = vec3(texture2D(tB,(sp+dv)/res).r, texture2D(tB,sp/res).g, texture2D(tB,(sp-dv)/res).b);
+  col = mix(vec3(dot(col,vec3(0.299,0.587,0.114))), col, 1.25);
+  col = col*1.06 + 0.05*(1.0-0.6*press);
+  vec2 L = normalize(vec2(-0.55 - vel*0.35, -0.83));
+  float nl = dot(n, L);
+  float rim = 1.0 - smoothstep(0.0, 2.0*dpr, depth);
+  float s1 = pow(max(nl,0.0), 1.3);
+  float s2 = pow(max(-nl,0.0), 2.2)*0.5;
+  float soft = 1.0 - smoothstep(0.0, bezel*1.2, depth); soft = soft*soft;
+  float s3 = soft*(pow(max(nl,0.0),2.0)*0.20 + pow(max(-nl,0.0),2.0)*0.12);
+  float hlt = (rim*(s1+s2)*0.95 + s3) * hdr;
+  col += mix(vec3(1.0), vec3(0.6,1.0,0.9), clamp(s2*2.0,0.0,1.0)) * hlt;
+  col += (1.0 - smoothstep(0.0, hb.y*1.1, q.y+hb.y)) * 0.06;
+  col += pow(1.0-t, 3.0) * 0.08;
+  float w = clamp(0.5 - d, 0.0, 1.0);
+  gl_FragColor = mix(outc, vec4(col,1.0), w);
+}`;
+    const WGSL = `
+struct U { a: vec4f, b: vec4f, c: vec4f };
+@group(0) @binding(0) var<uniform> u: U;
+@group(0) @binding(1) var smp: sampler;
+@group(0) @binding(2) var tA: texture_2d<f32>;
+@group(0) @binding(3) var tB: texture_2d<f32>;
+struct VO { @builtin(position) pos: vec4f, @location(0) uv: vec2f };
+@vertex fn vs(@builtin(vertex_index) i: u32) -> VO {
+  var P = array<vec2f, 3>(vec2f(-1.0,-1.0), vec2f(3.0,-1.0), vec2f(-1.0,3.0));
+  var o: VO;
+  o.pos = vec4f(P[i], 0.0, 1.0);
+  o.uv = vec2f((P[i].x+1.0)*0.5, (1.0-P[i].y)*0.5);
+  return o;
+}
+fn sdb(q: vec2f, hb: vec2f, r: f32) -> f32 {
+  let k = abs(q) - hb + vec2f(r);
+  return min(max(k.x,k.y),0.0) + length(max(k,vec2f(0.0))) - r;
+}
+@fragment fn fs(@location(0) uv: vec2f) -> @location(0) vec4f {
+  let res = u.a.xy; let dpr = u.a.z; let hdr = u.a.w;
+  let c = u.b.xy; let hb = u.b.zw; let press = u.c.x; let vel = u.c.y;
+  let p = uv * res;
+  let q = p - c;
+  let r = min(hb.x, hb.y);
+  let d = sdb(q, hb, r);
+  let base = textureSampleLevel(tA, smp, uv, 0.0);
+  let ds = sdb(q - vec2f(0.0, 5.0*dpr*(1.0+press)), hb, r);
+  let sh = 0.30 * (1.0 - smoothstep(0.0, 18.0*dpr*(1.0+press), ds));
+  let glw = exp(-max(d,0.0)/(12.0*dpr)) * 0.16 * (hdr-1.0) * (0.5+0.5*press);
+  let outc = vec4f(base.rgb*(1.0-sh) + vec3f(0.25,1.0,0.8)*glw, base.a*(1.0-sh)+sh);
+  let depth = max(-d, 0.0);
+  let bezel = r*0.75;
+  let t = clamp(depth/bezel, 0.0, 1.0);
+  let gr = vec2f(sdb(q+vec2f(1.0,0.0),hb,r)-sdb(q-vec2f(1.0,0.0),hb,r), sdb(q+vec2f(0.0,1.0),hb,r)-sdb(q-vec2f(0.0,1.0),hb,r));
+  let n = gr / max(length(gr), 0.0001);
+  let prof = pow(1.0-t, 2.4);
+  let mag = 1.10 + 0.10*press;
+  let strength = bezel*(1.1+0.5*press);
+  let sp = c + q/mag + n*prof*strength;
+  let dv = n*(0.05+0.04*press)*prof*strength;
+  var col = vec3f(textureSampleLevel(tB,smp,(sp+dv)/res,0.0).r, textureSampleLevel(tB,smp,sp/res,0.0).g, textureSampleLevel(tB,smp,(sp-dv)/res,0.0).b);
+  col = mix(vec3f(dot(col,vec3f(0.299,0.587,0.114))), col, 1.25);
+  col = col*1.06 + 0.05*(1.0-0.6*press);
+  let L = normalize(vec2f(-0.55 - vel*0.35, -0.83));
+  let nl = dot(n, L);
+  let rim = 1.0 - smoothstep(0.0, 2.0*dpr, depth);
+  let s1 = pow(max(nl,0.0), 1.3);
+  let s2 = pow(max(-nl,0.0), 2.2)*0.5;
+  var soft = 1.0 - smoothstep(0.0, bezel*1.2, depth); soft = soft*soft;
+  let s3 = soft*(pow(max(nl,0.0),2.0)*0.20 + pow(max(-nl,0.0),2.0)*0.12);
+  let hlt = (rim*(s1+s2)*0.95 + s3) * hdr;
+  col += mix(vec3f(1.0), vec3f(0.6,1.0,0.9), clamp(s2*2.0,0.0,1.0)) * hlt;
+  col += (1.0 - smoothstep(0.0, hb.y*1.1, q.y+hb.y)) * 0.06;
+  col += pow(1.0-t, 3.0) * 0.08;
+  let w = clamp(0.5 - d, 0.0, 1.0);
+  return mix(outc, vec4f(col,1.0), w);
+}`;
+
+    async function initWebGPU() {
+        if (!navigator.gpu) return null;
+        const adapter = await navigator.gpu.requestAdapter(); if (!adapter) return null;
+        const device = await adapter.requestDevice();
+        const cv = document.createElement('canvas'), ctx = cv.getContext('webgpu'); if (!ctx) return null;
+        const wantHDR = matchMedia('(dynamic-range:high)').matches;
+        let format = navigator.gpu.getPreferredCanvasFormat(), hdr = 1;
+        if (wantHDR) {
+            try { ctx.configure({ device, format: 'rgba16float', alphaMode: 'premultiplied', toneMapping: { mode: 'extended' } }); format = 'rgba16float'; hdr = 2; } catch (_) {}
+        }
+        if (hdr === 1) ctx.configure({ device, format, alphaMode: 'premultiplied' });
+        const mod = device.createShaderModule({ code: WGSL });
+        const info = await mod.getCompilationInfo();
+        if (info.messages.some(m => m.type === 'error')) throw new Error(info.messages.map(m => m.message).join('\n'));
+        const pipe = await device.createRenderPipelineAsync({
+            layout: 'auto', vertex: { module: mod, entryPoint: 'vs' },
+            fragment: { module: mod, entryPoint: 'fs', targets: [{ format }] }, primitive: { topology: 'triangle-list' }
+        });
+        const smp = device.createSampler({ magFilter: 'linear', minFilter: 'linear' });
+        const ub = device.createBuffer({ size: 64, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
+        let tA = null, tB = null, bg = null;
+        const b = {
+            kind: 'webgpu' + (hdr > 1 ? '-hdr' : ''), hdr, canvas: cv, adapter, device, lost: false, onlost: null,
+            resize(w, h) { cv.width = w; cv.height = h; },
+            upload(a, c, w, h) {
+                if (tA) tA.destroy(); if (tB) tB.destroy();
+                const mk = () => device.createTexture({ size: [w, h], format: 'rgba8unorm', usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT });
+                tA = mk(); tB = mk();
+                // пиксели через CPU (getImageData → writeTexture): не зависит от общего доступа 2D-канваса к GPU
+                const put = (cv, tex) => {
+                    const im = cv.getContext('2d').getImageData(0, 0, w, h), d = im.data;
+                    for (let i = 0; i < d.length; i += 4) { const al = d[i + 3]; if (al < 255) { d[i] = d[i] * al / 255; d[i + 1] = d[i + 1] * al / 255; d[i + 2] = d[i + 2] * al / 255; } }
+                    device.queue.writeTexture({ texture: tex }, d, { bytesPerRow: w * 4 }, [w, h]);
+                };
+                put(a, tA); put(c, tB);
+                bg = device.createBindGroup({ layout: pipe.getBindGroupLayout(0), entries: [
+                    { binding: 0, resource: { buffer: ub } }, { binding: 1, resource: smp },
+                    { binding: 2, resource: tA.createView() }, { binding: 3, resource: tB.createView() }] });
+            },
+            draw(u) {
+                if (!bg) return;
+                device.queue.writeBuffer(ub, 0, new Float32Array(u));
+                const enc = device.createCommandEncoder();
+                const pass = enc.beginRenderPass({ colorAttachments: [{ view: ctx.getCurrentTexture().createView(), clearValue: { r: 0, g: 0, b: 0, a: 0 }, loadOp: 'clear', storeOp: 'store' }] });
+                pass.setPipeline(pipe); pass.setBindGroup(0, bg); pass.draw(3); pass.end();
+                device.queue.submit([enc.finish()]);
+            }
+        };
+        device.lost.then(info => { console.warn('[liquid-glass] device lost', info && info.reason, info && info.message); b.lost = true; if (b.onlost) b.onlost(); });
+        return b;
+    }
+
+    function initGL() {
+        const cv = document.createElement('canvas');
+        const opt = { alpha: true, premultipliedAlpha: true, antialias: false, depth: false, stencil: false, powerPreference: 'low-power' };
+        let gl = cv.getContext('webgl2', opt); const v2 = !!gl;
+        if (!gl) gl = cv.getContext('webgl', opt);
+        if (!gl) return null;
+        const sh = (t, s) => { const o = gl.createShader(t); gl.shaderSource(o, s); gl.compileShader(o); if (!gl.getShaderParameter(o, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(o)); return o; };
+        const pr = gl.createProgram();
+        gl.attachShader(pr, sh(gl.VERTEX_SHADER, GLSL_V)); gl.attachShader(pr, sh(gl.FRAGMENT_SHADER, GLSL_F));
+        gl.linkProgram(pr); if (!gl.getProgramParameter(pr, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(pr));
+        gl.useProgram(pr);
+        const buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+        const loc = gl.getAttribLocation(pr, 'aP'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+        const uA = gl.getUniformLocation(pr, 'uA'), uB = gl.getUniformLocation(pr, 'uB'), uC = gl.getUniformLocation(pr, 'uC');
+        gl.uniform1i(gl.getUniformLocation(pr, 'tA'), 0); gl.uniform1i(gl.getUniformLocation(pr, 'tB'), 1);
+        const mk = () => { const t = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, t);
+            [[gl.TEXTURE_MIN_FILTER, gl.LINEAR], [gl.TEXTURE_MAG_FILTER, gl.LINEAR], [gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE], [gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE]].forEach(([k, val]) => gl.texParameteri(gl.TEXTURE_2D, k, val)); return t; };
+        const tA = mk(), tB = mk();
+        // HDR: полноценный расширенный диапазон только если есть и float16-буфер, и API включения HDR у канваса
+        let hdrBuf = false, hdr = 1;
+        if (v2 && matchMedia('(dynamic-range:high)').matches && gl.drawingBufferStorage && cv.configureHighDynamicRange) {
+            try { gl.getExtension('EXT_color_buffer_half_float'); gl.getExtension('EXT_color_buffer_float'); cv.configureHighDynamicRange({ mode: 'extended' }); hdrBuf = true; hdr = 2; } catch (_) { hdrBuf = false; hdr = 1; }
+        }
+        const b = {
+            kind: (v2 ? 'webgl2' : 'webgl') + (hdr > 1 ? '-hdr' : ''), hdr, canvas: cv, lost: false, onlost: null,
+            resize(w, h) {
+                cv.width = w; cv.height = h;
+                if (hdrBuf) { try { gl.drawingBufferStorage(gl.RGBA16F, w, h); } catch (_) { hdrBuf = false; b.hdr = 1; } }
+                gl.viewport(0, 0, w, h);
+            },
+            upload(a, c) {
+                gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true); gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+                gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, tA); gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, a);
+                gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, tB); gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, c);
+            },
+            draw(u) {
+                gl.uniform4f(uA, u[0], u[1], u[2], u[3]); gl.uniform4f(uB, u[4], u[5], u[6], u[7]); gl.uniform4f(uC, u[8], u[9], u[10], u[11]);
+                gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT); gl.drawArrays(gl.TRIANGLES, 0, 3);
+            }
+        };
+        cv.addEventListener('webglcontextlost', e => { e.preventDefault(); b.lost = true; if (b.onlost) b.onlost(); });
+        return b;
+    }
+
+    // Текстуры: A — дорожка с приглушёнными подписями, B — то, что видно через линзу (светлее, белые подписи)
+    function paint(cw, ch, s) {
+        [cA, cB].forEach((cv, k) => {
+            cv.width = cw; cv.height = ch;
+            const g = cv.getContext('2d'); g.clearRect(0, 0, cw, ch);
+            const tx0 = PADX * s, ty = PADY * s, tw = sw.offsetWidth * s, th = sw.offsetHeight * s, rr = th / 2;
+            const path = () => { g.beginPath(); g.moveTo(tx0 + rr, ty); g.lineTo(tx0 + tw - rr, ty); g.arc(tx0 + tw - rr, ty + rr, rr, -Math.PI / 2, Math.PI / 2); g.lineTo(tx0 + rr, ty + th); g.arc(tx0 + rr, ty + rr, rr, Math.PI / 2, Math.PI * 1.5); g.closePath(); };
+            if (k === 0) {
+                path(); g.fillStyle = '#161a25'; g.fill();
+                g.save(); path(); g.clip();
+                let gr = g.createLinearGradient(0, ty, 0, ty + 7 * s); gr.addColorStop(0, 'rgba(0,0,0,.55)'); gr.addColorStop(1, 'rgba(0,0,0,0)');
+                g.fillStyle = gr; g.fillRect(tx0, ty, tw, 7 * s);
+                gr = g.createLinearGradient(0, ty + th - 3 * s, 0, ty + th); gr.addColorStop(0, 'rgba(255,255,255,0)'); gr.addColorStop(1, 'rgba(255,255,255,.07)');
+                g.fillStyle = gr; g.fillRect(tx0, ty + th - 3 * s, tw, 3 * s);
+                g.restore();
+                path(); g.lineWidth = s; g.strokeStyle = 'rgba(255,255,255,.07)'; g.stroke();
+            } else {
+                const gr = g.createLinearGradient(0, ty, 0, ty + th); gr.addColorStop(0, '#34405d'); gr.addColorStop(1, '#262f48');
+                g.fillStyle = gr; g.fillRect(0, 0, cw, ch);
+            }
+            g.textAlign = 'center'; g.textBaseline = 'middle'; g.direction = 'ltr'; g.fillStyle = k ? '#ffffff' : '#9aa3b8';
+            btns.forEach(b => {
+                const cs = getComputedStyle(b);
+                g.font = `${cs.fontWeight} ${parseFloat(cs.fontSize) * s}px ${cs.fontFamily}`;
+                g.fillText(b.textContent, (PADX + sw.clientLeft + b.offsetLeft + b.offsetWidth / 2) * s, (PADY + sw.clientTop + b.offsetTop + b.offsetHeight / 2) * s + s * .5);
+            });
+        });
+    }
+
+    function gLayout() {
+        if (!be || !gcv) return;
+        const s = Math.min(window.devicePixelRatio || 1, 3);
+        const cwCss = sw.offsetWidth + 2 * PADX, chCss = sw.offsetHeight + 2 * PADY;
+        ox = PADX + sw.clientLeft; oy = PADY + sw.clientTop; gs = s;
+        const f = btns.map(b => { const c = getComputedStyle(b); return c.fontSize + c.fontWeight + c.fontFamily + b.offsetLeft + '/' + b.offsetWidth; }).join('|');
+        const sg = [cwCss, chCss, s, f].join(';');
+        if (sg === gsig) return; gsig = sg;
+        const cw = Math.round(cwCss * s), ch = Math.round(chCss * s);
+        gcv.style.left = -(PADX + sw.clientLeft) + 'px'; gcv.style.top = -(PADY + sw.clientTop) + 'px';
+        gcv.style.width = cwCss + 'px'; gcv.style.height = chCss + 'px';
+        be.resize(cw, ch); paint(cw, ch, s); be.upload(cA, cB, cw, ch);
+        apply(0);
+    }
+
+    // ================= геометрия и физика =================
+    function measure() {
+        const b0 = btns[0], bw = b0.offsetWidth, bh = b0.offsetHeight;
+        if (!bw || !bh) return false;
+        centers = btns.map(b => b.offsetLeft + b.offsetWidth / 2);
+        W = bw; H = bh; y = b0.offsetTop;
+        thumb.style.width = W + 'px'; thumb.style.height = H + 'px';
+        row.style.width = sw.clientWidth + 'px'; row.style.height = sw.clientHeight + 'px';
+        btns.forEach((b, i) => {
+            const s = spans[i], cs = getComputedStyle(b);
+            s.textContent = b.textContent;
+            s.style.cssText = `left:${b.offsetLeft}px;top:${b.offsetTop}px;width:${b.offsetWidth}px;height:${b.offsetHeight}px;font-size:${cs.fontSize};font-weight:${cs.fontWeight};font-family:${cs.fontFamily};letter-spacing:${cs.letterSpacing}`;
+        });
+        gLayout();
+        return true;
+    }
+
+    function apply(st) {
+        const tl = x - W / 2;
+        if (be && !be.lost && gsig) {
+            const sx = ps * (1 + st), sy = ps * (1 - st * .5), press = clamp((ps - 1) / .15, 0, 1);
+            be.draw([gcv.width, gcv.height, gs, be.hdr, (ox + x) * gs, (oy + y + H / 2) * gs, (W / 2) * sx * gs, (H / 2) * sy * gs, press, clamp(v / 1500, -1, 1), 0, 0]);
+            return;
+        }
+        thumb.style.transform = `translate3d(${tl}px,${y}px,0) scale(${ps * (1 + st)},${ps * (1 - st * .5)})`;
+        row.style.transform = `translate3d(${-tl}px,${-y}px,0)`;
+    }
+    function frame(t) {
+        const dt = Math.min(.032, (t - last) / 1000 || .016); last = t;
+        const k = grab ? 900 : 260, c = grab ? 52 : 23;
+        v += ((tx - x) * k - v * c) * dt; x += v * dt;
+        ps += (pt - ps) * Math.min(1, dt * 14);
+        apply(Math.min(Math.abs(v) / 4500, .12));
+        if (Math.abs(tx - x) < .05 && Math.abs(v) < .5 && Math.abs(pt - ps) < .002) { x = tx; v = 0; ps = pt; apply(0); raf = 0; return; }
+        raf = requestAnimationFrame(frame);
+    }
+    function kick() {
+        if (reduce) { x = tx; v = 0; ps = pt; apply(0); return; }
+        if (!raf) { last = performance.now(); raf = requestAnimationFrame(frame); }
+    }
+    function sync(animate) {
+        if (!measure()) return;
+        const i = codes.indexOf(currentLang); if (i < 0) return;
+        btns.forEach((b, j) => b.setAttribute('aria-checked', j === i ? 'true' : 'false'));
+        if (grab) return;
+        tx = centers[i];
+        if (!placed || !animate) { x = tx; v = 0; placed = true; apply(0); } else kick();
+    }
+
+    const idxAt = px => { let bi = 0, bd = 1e9; centers.forEach((c, i) => { const d = Math.abs(c - px); if (d < bd) { bd = d; bi = i; } }); return bi; };
+    const rubber = p => { const lo = Math.min(...centers), hi = Math.max(...centers); return p < lo ? lo - (lo - p) * .25 : p > hi ? hi + (p - hi) * .25 : p; };
+    const localX = e => e.clientX - sw.getBoundingClientRect().left - sw.clientLeft;
+
+    sw.addEventListener('pointerdown', e => {
+        if (e.pointerType === 'mouse' && e.button !== 0) return;
+        if (!measure()) return;
+        const px = localX(e);
+        grab = true; startPx = px;
+        off = Math.abs(px - x) <= W / 2 ? px - x : 0;
+        tx = rubber(px - off); pt = 1.15;
+        sw.classList.add('grab');
+        try { sw.setPointerCapture(e.pointerId); } catch (_) {}
+        tick(); kick();
+    });
+    sw.addEventListener('pointermove', e => {
+        if (!grab) return;
+        const prev = idxAt(tx); tx = rubber(localX(e) - off);
+        if (idxAt(tx) !== prev) tick();
+        kick();
+    });
+    function release(cancel) {
+        if (!grab) return;
+        grab = false; pt = 1; sw.classList.remove('grab');
+        const i = cancel ? codes.indexOf(currentLang) : idxAt(tx);
+        tx = centers[i]; kick();
+        if (codes[i] !== currentLang) setLanguage(codes[i]);
+    }
+    sw.addEventListener('pointerup', () => release(false));
+    sw.addEventListener('pointercancel', () => release(true));
+    sw.addEventListener('lostpointercapture', () => release(false));
+    btns.forEach((b, i) => b.addEventListener('click', e => { if (e.detail === 0 && codes[i] !== currentLang) setLanguage(codes[i]); }));
+
+    const _setLanguage = window.setLanguage;
+    window.setLanguage = function (l) { const r = _setLanguage.apply(this, arguments); sync(true); return r; };
+
+    new ResizeObserver(() => sync(false)).observe(sw);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { gsig = ''; sync(false); });
+    addEventListener('load', () => sync(false));
+    addEventListener('resize', () => sync(false));
+    sync(false);
+
+    // ================= запуск GPU: WebGPU → WebGL → остаётся CSS =================
+    function detach() {
+        sw.classList.remove('gpu'); if (gcv && gcv.parentNode) gcv.remove();
+        be = null; gcv = null; gsig = ''; delete sw.dataset.glass;
+    }
+    function attach(b, next) {
+        be = b; gcv = b.canvas; gcv.className = 'lg-gpu'; gcv.setAttribute('aria-hidden', 'true');
+        sw.appendChild(gcv); sw.classList.add('gpu'); sw.dataset.glass = b.kind;
+        b.onlost = () => { detach(); if (next) start(next); else { sync(false); } };   // потеряли WebGPU → пробуем WebGL; потеряли WebGL → CSS
+        gsig = ''; if (measure()) apply(0);
+    }
+    async function start(inits) {
+        for (let i = 0; i < inits.length; i++) {
+            try { const b = await inits[i](); if (b) { attach(b, inits.slice(i + 1).length ? inits.slice(i + 1) : null); return; } }
+            catch (e) { console.warn('[liquid-glass]', e); }
+        }
+        sync(false);
+    }
+    start([initWebGPU, async () => initGL()]);
+})();
 </script>
 </body>
 </html>
