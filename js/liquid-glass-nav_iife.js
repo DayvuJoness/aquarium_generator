@@ -153,7 +153,7 @@ const DEFAULTS={
   hdrIconGain:.6,       // HDR-усиление активной синей иконки
 
   // ---- Иконки (рисуются в текстуру) ----
-  iconWhite:'rgba(255,255,255,.94)', iconBlue:'#2fd0a6', iconStroke:1.8, iconStrokeActive:2,
+  iconWhite:'rgba(255,255,255,.94)', iconBlue:'#4ec9b0', iconStroke:1.8, iconStrokeActive:2,
 
   // ---- Физика (пружины) ----
   physicsHz:120,        // частота подшагов физики
@@ -163,6 +163,9 @@ const DEFAULTS={
   damping:.7,           // демпфирование краёв: 1 — без отскока
   pressStiffness:660, pressDamping:.64, // пружина нажатия
   pressHold:150,        // минимум мс удержания «нажатого» состояния
+  tapSpeed:.4,          // скорость ползунка при простом ТАПЕ по вкладке (не перетаскивании): 1 — как при перетаскивании, меньше — медленнее (.4 ≈ в 2.5 раза медленнее)
+  tapMoveSlop:6,        // сдвиг пальца, px: пока он меньше — это тап (скорость tapSpeed), больше — перетаскивание (обычная скорость)
+  tapHoldPress:true,    // при тапе держать «нажатое» стекло (линзу) до тех пор, пока ползунок не доедет до вкладки (false — отпускать через pressHold мс, как раньше)
 
   // ---- Рендер ----
   maxDpr:9,             // потолок плотности пикселей бара
@@ -388,7 +391,7 @@ const sctx=sceneCv.getContext('2d');
 let dpr=1,idx=0,ok=true,rend=null,HDR=1,destroyed=false,raf=0,cvB=null,items=[],N=0,NR={w:0,h:0},bgColorCache='#0b0c12';
 const S={xl:0,xr:0,vl:0,vr:0,p:0,pv:0,st:0};      // края ползунка, нажатие, сглаженное сжатие
 const R={k:0,kv:0,o:0,ov:0};                       // «резинка» бара
-let tc=0,pt=0,drag=false,tDown=0,idxDown=0;
+let tc=0,pt=0,drag=false,tDown=0,idxDown=0,tapMode=false,x0=0,layoutKey='',settleRelease=false,tUp=0;
 const still=win.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const cleanups=[];const on=(t,e,h,o)=>{t.addEventListener(e,h,o);cleanups.push(()=>t.removeEventListener(e,h,o));};
 
@@ -553,15 +556,18 @@ function layout(){
   if(destroyed||!cvB)return;
   dpr=Math.min(win.devicePixelRatio||1,C.maxDpr);
   items=getItems();N=items.length;
-  const W=nav.offsetWidth,H=nav.offsetHeight;NR={w:W,h:H};
+  const W=nav.offsetWidth,H=nav.offsetHeight,oldW=NR.w;NR={w:W,h:H};
   const cw=W+C.pad*2,ch=H+C.pad*2;
-  cvB.style.left=-(C.pad+nav.clientLeft)+'px';cvB.style.top=-(C.pad+nav.clientTop)+'px';cvB.style.width=cw+'px';cvB.style.height=ch+'px';
-  cvB.width=sceneCv.width=Math.round(cw*dpr);cvB.height=sceneCv.height=Math.round(ch*dpr);
+  cvB.style.left=-(C.pad+nav.clientLeft)+'px';cvB.style.top=-(C.pad+nav.clientTop)+'px';const lk=cw+'x'+ch+'@'+dpr,resized=lk!==layoutKey;layoutKey=lk; // размер канваса/текстур меняем только если он реально изменился (иначе лаг при смене dir)
+  if(resized){cvB.style.width=cw+'px';cvB.style.height=ch+'px';}
+  if(resized){cvB.width=sceneCv.width=Math.round(cw*dpr);cvB.height=sceneCv.height=Math.round(ch*dpr);}
   F[0]=cw;F[1]=ch;F[2]=0;F[3]=0;F[4]=C.pad;F[5]=C.pad;F[6]=W;F[7]=H;F[14]=dpr;F[15]=HDR;
   resolveBgColor();
-  if(rend){rend.size();paintScene(0);rend.uploadScene();}
+  if(rend){if(resized)rend.size();paintScene(0);rend.uploadScene();}
   if(idx>=N)idx=Math.max(0,N-1);
-  if(!drag){tc=cell()*(idx+.5);S.xl=tc-hw0();S.xr=tc+hw0();S.vl=S.vr=0;}
+  if(!drag){tc=cell()*(idx+.5);
+    if(oldW>0&&W>0){const k=W/oldW;S.xl*=k;S.xr*=k;S.vl*=k;S.vr*=k;} // пересчёт вёрстки (смена dir/ресайз): ползунок не «телепортируется», а плавно доезжает пружиной
+    else{S.xl=tc-hw0();S.xr=tc+hw0();S.vl=S.vr=0;}}
   drawContent();
 }
 
@@ -574,10 +580,11 @@ function setIdx(i,emit=true){
 function syncFromDom(){const k=items.findIndex(b=>b.getAttribute('aria-current')&&b.getAttribute('aria-current')!=='false');if(k>=0&&k!==idx&&!drag){idx=k;tc=cell()*(k+.5);}}
 
 /* ---------- Ввод ---------- */
-on(nav,'pointerdown',e=>{if(!N||e.button>0)return;drag=true;nav.setPointerCapture(e.pointerId);pt=1;tDown=performance.now();idxDown=idx;tc=clampX(xIn(e));setIdx(idxAt(tc));});
-on(nav,'pointermove',e=>{if(!drag)return;tc=clampX(xIn(e));setIdx(idxAt(tc));});
+on(nav,'pointerdown',e=>{if(!N||e.button>0)return;drag=true;nav.setPointerCapture(e.pointerId);pt=1;tDown=performance.now();idxDown=idx;tapMode=true;settleRelease=false;x0=xIn(e);tc=clampX(xIn(e));setIdx(idxAt(tc));});
+on(nav,'pointermove',e=>{if(!drag)return;if(tapMode&&Math.abs(xIn(e)-x0)>C.tapMoveSlop)tapMode=false;tc=clampX(xIn(e));setIdx(idxAt(tc));});
 function up(){if(!drag)return;drag=false;tc=cell()*(idx+.5);
-  setTimeout(()=>{if(!drag)pt=0;},Math.max(0,C.pressHold-(performance.now()-tDown)));
+  if(tapMode&&C.tapHoldPress){settleRelease=true;tUp=performance.now();}
+  else setTimeout(()=>{if(!drag)pt=0;},Math.max(0,C.pressHold-(performance.now()-tDown)));
   if(C.clickOnSelect&&idx!==idxDown&&items[idx])items[idx].click();}
 on(nav,'pointerup',up);on(nav,'pointercancel',up);
 on(nav,'click',e=>{if(e.detail!==0)return;const k=items.findIndex(b=>b.contains(e.target));if(k>=0){setIdx(k);tc=cell()*(k+.5);}});
@@ -588,10 +595,12 @@ on(nav,'keydown',e=>{if(e.key!=='ArrowRight'&&e.key!=='ArrowLeft')return;
 /* ---------- Физика и кадр ---------- */
 const DT=1/C.physicsHz; // фиксированный шаг → одинаковая плавность на 60 и 120 Гц
 function step(){
+  if(settleRelease&&!drag){const now=performance.now(),mid=(S.xl+S.xr)/2; // тап: отпускаем «нажатие», когда ползунок доехал (или через 2.5 с на всякий случай)
+    if((Math.abs(mid-tc)<1.5&&Math.abs(S.vl+S.vr)*.5<30&&now-tDown>=C.pressHold)||now-tUp>2500){pt=0;settleRelease=false;}}
   S.pv+=((pt-S.p)*C.pressStiffness-S.pv*2*C.pressDamping*Math.sqrt(C.pressStiffness))*DT;S.p+=S.pv*DT;
   const grow=Math.max(S.p,-.25),hw=hw0()+grow*C.pressGrowX,mid=(S.xl+S.xr)/2;
   const s=Math.max(-1,Math.min(1,(tc-mid)/(cell()*.5))),a=Math.max(s,0),b=Math.max(-s,0);
-  const kr=C.stiffness+C.leadBoost*a-C.lagPenalty*b,kl=C.stiffness+C.leadBoost*b-C.lagPenalty*a; // плавно, без скачков
+  const f2=tapMode?C.tapSpeed*C.tapSpeed:1,kr=(C.stiffness+C.leadBoost*a-C.lagPenalty*b)*f2,kl=(C.stiffness+C.leadBoost*b-C.lagPenalty*a)*f2; // плавно, без скачков
   S.vl+=((tc-hw-S.xl)*kl-S.vl*2*C.damping*Math.sqrt(kl))*DT;S.xl+=S.vl*DT;
   S.vr+=((tc+hw-S.xr)*kr-S.vr*2*C.damping*Math.sqrt(kr))*DT;S.xr+=S.vr*DT;
   // «резиновый» бар: цель зависит от скорости и положения ползунка, работает только пока ползунок нажат
