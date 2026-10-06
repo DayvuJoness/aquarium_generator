@@ -198,40 +198,18 @@
         .lang-btn:hover{background:var(--card2);color:var(--text)}
         .lang-btn.active{background:var(--acc);color:#04201a}
 
-        /* ===== Liquid Glass: переключатель языков ===== */
-        #sidebar .lang-switcher{position:relative;direction:ltr;display:flex;flex-wrap:nowrap;gap:0;padding:4px;margin:0;border-radius:999px;
-            border:1px solid rgba(255,255,255,.07);background:#161a25;
-            box-shadow:inset 0 1px 3px rgba(0,0,0,.55),inset 0 -1px 0 rgba(255,255,255,.05);
-            touch-action:pan-y;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;cursor:pointer}
-        #sidebar .lang-btn{position:relative;z-index:1;flex:1 1 0;min-width:0;margin:0;padding:8px 4px;border:0!important;border-radius:999px;
-            background:transparent!important;color:#9aa3b8;font-weight:600;cursor:inherit;touch-action:pan-y;
-            -webkit-tap-highlight-color:transparent;transition:color .2s ease}
-        #sidebar .lang-btn:hover,#sidebar .lang-btn.active{background:transparent!important}
-        #sidebar .lang-btn:focus-visible{outline:2px solid var(--acc);outline-offset:-3px}
-        .lg-thumb{position:absolute;left:0;top:0;z-index:2;pointer-events:none;border-radius:999px;will-change:transform;
-            box-shadow:0 5px 14px rgba(0,0,0,.34),0 1px 3px rgba(0,0,0,.4);transition:box-shadow .25s ease}
-        .lg-lens{position:absolute;inset:0;border-radius:inherit;overflow:hidden;clip-path:inset(0 round 999px);
-            background:linear-gradient(180deg,#3a4259,#2b3248 55%,#343c54)}
-        .lg-row{position:absolute;left:0;top:0;will-change:transform}
-        .lg-row span{position:absolute;display:flex;align-items:center;justify-content:center;color:#fff;white-space:nowrap;direction:ltr}
-        .lg-gloss{position:absolute;inset:0;border-radius:inherit;pointer-events:none;
-            background:linear-gradient(180deg,rgba(255,255,255,.26) 0,rgba(255,255,255,.05) 42%,rgba(255,255,255,0) 58%,rgba(255,255,255,.10) 100%)}
-        .lg-thumb::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
-            box-shadow:inset 0 0 0 1px rgba(255,255,255,.26),inset 1.5px 2px 1px -1px rgba(255,255,255,.9),inset -1.5px -2px 1px -1px rgba(255,255,255,.5),inset 0 0 12px rgba(255,255,255,.12)}
-        .lang-switcher.grab .lg-thumb{box-shadow:0 12px 26px rgba(0,0,0,.42),0 2px 6px rgba(0,0,0,.35)}
-        .lang-switcher.grab .lg-gloss{background:linear-gradient(180deg,rgba(255,255,255,.34) 0,rgba(255,255,255,.07) 42%,rgba(255,255,255,0) 58%,rgba(255,255,255,.14) 100%)}
-        @media (color-gamut:p3){
-            .lg-thumb::after{box-shadow:inset 0 0 0 1px color(display-p3 1 1 1/.3),inset 1.5px 2px 1px -1px color(display-p3 1 1 1/.95),inset -1.5px -2px 1px -1px color(display-p3 .8 1 .95/.55),inset 0 0 12px color(display-p3 1 1 1/.14)}
-        }
-        @media (dynamic-range:high){
-            .lg-thumb{box-shadow:0 5px 14px rgba(0,0,0,.34),0 0 20px color(display-p3 .3 1 .85/.28)}
-            .lang-switcher.grab .lg-thumb{box-shadow:0 12px 26px rgba(0,0,0,.42),0 0 32px color(display-p3 .3 1 .85/.42)}
-        }
-        /* GPU-режим: рисует канвас (WebGPU/WebGL), DOM-кнопки остаются невидимыми ради доступности и ввода */
-        .lg-gpu{position:absolute;z-index:3;pointer-events:none;display:block}
-        #sidebar .lang-switcher.gpu{background:transparent;border-color:transparent;box-shadow:none}
-        #sidebar .lang-switcher.gpu .lang-btn{color:transparent}
-        .lang-switcher.gpu .lg-thumb{display:none}
+        /* ===== Liquid Glass: переключатель языков =====
+           Стекло, ползунок, скругление и тень рисует liquid-glass-nav.js; здесь только размеры и раскладка.
+           direction:ltr — при иврите/арабском интерфейс зеркалится, а порядок языков остаётся прежним. */
+        #sidebar .lang-switcher{position:relative;direction:ltr;display:grid;grid-template-columns:repeat(4,1fr);gap:0;flex:0 0 auto;
+            width:100%;max-width:430px;height:52px;margin:0;padding:0;border:0;border-radius:999px;background:transparent;cursor:pointer}
+        #sidebar .lang-btn{all:unset;box-sizing:border-box;display:flex;align-items:center;justify-content:center;min-width:0;
+            font:600 14px/1 Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:rgba(255,255,255,.92);cursor:pointer;
+            -webkit-tap-highlight-color:transparent}
+        #sidebar .lang-btn:focus-visible{outline:2px solid var(--acc);outline-offset:-6px;border-radius:999px}
+        /* Запасной вид, пока модуль не загрузился (или не загрузится вовсе) */
+        #sidebar .lang-switcher:not(.lg-nav){background:#161a25;box-shadow:inset 0 0 0 1px rgba(255,255,255,.07)}
+        #sidebar .lang-switcher:not(.lg-nav) .lang-btn[aria-current]{background:var(--acc);color:#04201a;border-radius:999px;margin:4px}
         .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:0 14px;flex:0 0 auto}
         .card>h2{margin:0 -14px;padding:14px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);cursor:pointer;display:flex;justify-content:space-between;align-items:center;user-select:none}
         .card>h2::after{content:"";width:7px;height:7px;border:solid var(--muted);border-width:0 2px 2px 0;transform:rotate(45deg);transition:transform .2s}
@@ -312,12 +290,12 @@
 <body>
  
     <div id="sidebar">
-        <div class="lang-switcher">
+        <nav class="lang-switcher" id="lang-nav" aria-label="Language">
             <button class="lang-btn" id="btn-ru" type="button">РУС</button>
             <button class="lang-btn" id="btn-en" type="button">ENG</button>
-            <button class="lang-btn" id="btn-ar" type="button">العربية</button>
-            <button class="lang-btn" id="btn-he" type="button">עברית</button>
-        </div>
+            <button class="lang-btn" id="btn-ar" type="button" lang="ar">العربية</button>
+            <button class="lang-btn" id="btn-he" type="button" lang="he">עברית</button>
+        </nav>
  
         <h2 id="ui-title">Параметры аквариума</h2>
  
@@ -631,9 +609,9 @@
             htmlRoot.setAttribute('dir', 'ltr');
         }
  
-        document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.lang-btn').forEach(btn => { btn.classList.remove('active'); btn.removeAttribute('aria-current'); });
         const btnElem = document.getElementById(`btn-${lang}`);
-        if (btnElem) btnElem.classList.add('active');
+        if (btnElem) { btnElem.classList.add('active'); btnElem.setAttribute('aria-current', 'page'); }
  
         const t = dict[lang];
         document.getElementById('pageTitle').innerText = t.title;
@@ -1980,404 +1958,25 @@
 })();
 </script>
 <script>
-// ===== Liquid Glass переключатель языков: WebGPU → WebGL → CSS (запасной вариант) =====
+// ===== Liquid Glass переключатель языков: liquid-glass-nav.js (ES-модуль) → liquid-glass-nav_iife.js (запасной, работает и с file://) =====
 (() => {
-    const sw = document.querySelector('.lang-switcher');
-    if (!sw) return;
-    const btns = [...sw.querySelectorAll('.lang-btn')], codes = btns.map(b => b.id.replace('btn-', ''));
+    const nav = document.getElementById('lang-nav');
+    if (!nav) return;
+    const btns = [...nav.querySelectorAll('.lang-btn')], codes = btns.map(b => b.id.replace('btn-', ''));
+    // Клик по вкладке (в т.ч. «синтетический» от ползунка/стрелок) меняет язык
+    btns.forEach((b, i) => b.addEventListener('click', () => { if (codes[i] !== currentLang) setLanguage(codes[i]); }));
+    // Выбор активной вкладки до старта модуля — иначе он начнёт с первой
+    const k = codes.indexOf(currentLang);
+    btns.forEach((b, i) => i === k ? b.setAttribute('aria-current', 'page') : b.removeAttribute('aria-current'));
 
-    // --- запасной вариант: линза из CSS (если нет ни WebGPU, ни WebGL) ---
-    const thumb = document.createElement('div');
-    thumb.className = 'lg-thumb'; thumb.setAttribute('aria-hidden', 'true');
-    thumb.innerHTML = '<div class="lg-lens"><div class="lg-row"></div><div class="lg-gloss"></div></div>';
-    sw.appendChild(thumb);
-    const row = thumb.querySelector('.lg-row'), spans = btns.map(() => row.appendChild(document.createElement('span')));
-    sw.setAttribute('role', 'radiogroup'); btns.forEach(b => b.setAttribute('role', 'radio'));
-
-    const reduce = matchMedia('(prefers-reduced-motion:reduce)').matches;
-    const touch = matchMedia('(hover:none) and (pointer:coarse)').matches;
-    const clamp = (a, lo, hi) => Math.max(lo, Math.min(hi, a));
-
-    let hl = null;
-    const tick = () => {
-        if (!touch) return;
-        if (navigator.vibrate) { navigator.vibrate(5); return; }
-        if (!hl) {
-            const i = document.createElement('input'); i.type = 'checkbox'; i.setAttribute('switch', '');
-            hl = document.createElement('label'); hl.setAttribute('aria-hidden', 'true'); hl.style.display = 'none';
-            hl.appendChild(i); document.head.appendChild(hl);
-        }
-        hl.click();
-    };
-
-    let W = 0, H = 0, y = 0, centers = [], x = 0, v = 0, tx = 0, ps = 1, pt = 1, raf = 0, last = 0;
-    let grab = false, startPx = 0, off = 0, placed = false;
-
-    // ================= GPU =================
-    const PADX = 10, PADY = 14;                 // поле вокруг плашки под тень и преломление
-    let be = null, gcv = null, gsig = '', ox = 0, oy = 0, gs = 1;
-    const cA = document.createElement('canvas'), cB = document.createElement('canvas');
-
-    // Общая математика (в гамма-пространстве). hdr = 1 в SDR, 2 при HDR-дисплее: блики уходят выше белого.
-    const GLSL_V = 'attribute vec2 aP;void main(){gl_Position=vec4(aP,0.0,1.0);}';
-    const GLSL_F = `
-precision highp float;
-uniform vec4 uA; uniform vec4 uB; uniform vec4 uC;
-uniform sampler2D tA; uniform sampler2D tB;
-float sdb(vec2 q, vec2 hb, float r){
-  vec2 k = abs(q) - hb + vec2(r);
-  return min(max(k.x,k.y),0.0) + length(max(k,vec2(0.0))) - r;
-}
-void main(){
-  vec2 res = uA.xy; float dpr = uA.z; float hdr = uA.w;
-  vec2 c = uB.xy; vec2 hb = uB.zw; float press = uC.x; float vel = uC.y;
-  vec2 p = vec2(gl_FragCoord.x, res.y - gl_FragCoord.y);
-  vec2 uv = p / res;
-  vec2 q = p - c;
-  float r = min(hb.x, hb.y);
-  float d = sdb(q, hb, r);
-  vec4 base = texture2D(tA, uv);
-  float ds = sdb(q - vec2(0.0, 5.0*dpr*(1.0+press)), hb, r);
-  float sh = 0.30 * (1.0 - smoothstep(0.0, 18.0*dpr*(1.0+press), ds));
-  vec4 outc = vec4(base.rgb*(1.0-sh), base.a*(1.0-sh)+sh);
-  float gl = exp(-max(d,0.0)/(12.0*dpr)) * 0.16 * (hdr-1.0) * (0.5+0.5*press);
-  outc.rgb += vec3(0.25,1.0,0.8)*gl;
-  float depth = max(-d, 0.0);
-  float bezel = r*0.75;
-  float t = clamp(depth/bezel, 0.0, 1.0);
-  vec2 gr = vec2(sdb(q+vec2(1.0,0.0),hb,r)-sdb(q-vec2(1.0,0.0),hb,r), sdb(q+vec2(0.0,1.0),hb,r)-sdb(q-vec2(0.0,1.0),hb,r));
-  vec2 n = gr / max(length(gr), 0.0001);
-  float prof = pow(1.0-t, 2.4);
-  float mag = 1.10 + 0.10*press;
-  float strength = bezel*(1.1+0.5*press);
-  vec2 sp = c + q/mag + n*prof*strength;
-  vec2 dv = n*(0.05+0.04*press)*prof*strength;
-  vec3 col = vec3(texture2D(tB,(sp+dv)/res).r, texture2D(tB,sp/res).g, texture2D(tB,(sp-dv)/res).b);
-  col = mix(vec3(dot(col,vec3(0.299,0.587,0.114))), col, 1.25);
-  col = col*1.06 + 0.05*(1.0-0.6*press);
-  vec2 L = normalize(vec2(-0.55 - vel*0.35, -0.83));
-  float nl = dot(n, L);
-  float rim = 1.0 - smoothstep(0.0, 2.0*dpr, depth);
-  float s1 = pow(max(nl,0.0), 1.3);
-  float s2 = pow(max(-nl,0.0), 2.2)*0.5;
-  float soft = 1.0 - smoothstep(0.0, bezel*1.2, depth); soft = soft*soft;
-  float s3 = soft*(pow(max(nl,0.0),2.0)*0.20 + pow(max(-nl,0.0),2.0)*0.12);
-  float hlt = (rim*(s1+s2)*0.95 + s3) * hdr;
-  col += mix(vec3(1.0), vec3(0.6,1.0,0.9), clamp(s2*2.0,0.0,1.0)) * hlt;
-  col += (1.0 - smoothstep(0.0, hb.y*1.1, q.y+hb.y)) * 0.06;
-  col += pow(1.0-t, 3.0) * 0.08;
-  float w = clamp(0.5 - d, 0.0, 1.0);
-  gl_FragColor = mix(outc, vec4(col,1.0), w);
-}`;
-    const WGSL = `
-struct U { a: vec4f, b: vec4f, c: vec4f };
-@group(0) @binding(0) var<uniform> u: U;
-@group(0) @binding(1) var smp: sampler;
-@group(0) @binding(2) var tA: texture_2d<f32>;
-@group(0) @binding(3) var tB: texture_2d<f32>;
-struct VO { @builtin(position) pos: vec4f, @location(0) uv: vec2f };
-@vertex fn vs(@builtin(vertex_index) i: u32) -> VO {
-  var P = array<vec2f, 3>(vec2f(-1.0,-1.0), vec2f(3.0,-1.0), vec2f(-1.0,3.0));
-  var o: VO;
-  o.pos = vec4f(P[i], 0.0, 1.0);
-  o.uv = vec2f((P[i].x+1.0)*0.5, (1.0-P[i].y)*0.5);
-  return o;
-}
-fn sdb(q: vec2f, hb: vec2f, r: f32) -> f32 {
-  let k = abs(q) - hb + vec2f(r);
-  return min(max(k.x,k.y),0.0) + length(max(k,vec2f(0.0))) - r;
-}
-@fragment fn fs(@location(0) uv: vec2f) -> @location(0) vec4f {
-  let res = u.a.xy; let dpr = u.a.z; let hdr = u.a.w;
-  let c = u.b.xy; let hb = u.b.zw; let press = u.c.x; let vel = u.c.y;
-  let p = uv * res;
-  let q = p - c;
-  let r = min(hb.x, hb.y);
-  let d = sdb(q, hb, r);
-  let base = textureSampleLevel(tA, smp, uv, 0.0);
-  let ds = sdb(q - vec2f(0.0, 5.0*dpr*(1.0+press)), hb, r);
-  let sh = 0.30 * (1.0 - smoothstep(0.0, 18.0*dpr*(1.0+press), ds));
-  let glw = exp(-max(d,0.0)/(12.0*dpr)) * 0.16 * (hdr-1.0) * (0.5+0.5*press);
-  let outc = vec4f(base.rgb*(1.0-sh) + vec3f(0.25,1.0,0.8)*glw, base.a*(1.0-sh)+sh);
-  let depth = max(-d, 0.0);
-  let bezel = r*0.75;
-  let t = clamp(depth/bezel, 0.0, 1.0);
-  let gr = vec2f(sdb(q+vec2f(1.0,0.0),hb,r)-sdb(q-vec2f(1.0,0.0),hb,r), sdb(q+vec2f(0.0,1.0),hb,r)-sdb(q-vec2f(0.0,1.0),hb,r));
-  let n = gr / max(length(gr), 0.0001);
-  let prof = pow(1.0-t, 2.4);
-  let mag = 1.10 + 0.10*press;
-  let strength = bezel*(1.1+0.5*press);
-  let sp = c + q/mag + n*prof*strength;
-  let dv = n*(0.05+0.04*press)*prof*strength;
-  var col = vec3f(textureSampleLevel(tB,smp,(sp+dv)/res,0.0).r, textureSampleLevel(tB,smp,sp/res,0.0).g, textureSampleLevel(tB,smp,(sp-dv)/res,0.0).b);
-  col = mix(vec3f(dot(col,vec3f(0.299,0.587,0.114))), col, 1.25);
-  col = col*1.06 + 0.05*(1.0-0.6*press);
-  let L = normalize(vec2f(-0.55 - vel*0.35, -0.83));
-  let nl = dot(n, L);
-  let rim = 1.0 - smoothstep(0.0, 2.0*dpr, depth);
-  let s1 = pow(max(nl,0.0), 1.3);
-  let s2 = pow(max(-nl,0.0), 2.2)*0.5;
-  var soft = 1.0 - smoothstep(0.0, bezel*1.2, depth); soft = soft*soft;
-  let s3 = soft*(pow(max(nl,0.0),2.0)*0.20 + pow(max(-nl,0.0),2.0)*0.12);
-  let hlt = (rim*(s1+s2)*0.95 + s3) * hdr;
-  col += mix(vec3f(1.0), vec3f(0.6,1.0,0.9), clamp(s2*2.0,0.0,1.0)) * hlt;
-  col += (1.0 - smoothstep(0.0, hb.y*1.1, q.y+hb.y)) * 0.06;
-  col += pow(1.0-t, 3.0) * 0.08;
-  let w = clamp(0.5 - d, 0.0, 1.0);
-  return mix(outc, vec4f(col,1.0), w);
-}`;
-
-    async function initWebGPU() {
-        if (!navigator.gpu) return null;
-        const adapter = await navigator.gpu.requestAdapter(); if (!adapter) return null;
-        const device = await adapter.requestDevice();
-        const cv = document.createElement('canvas'), ctx = cv.getContext('webgpu'); if (!ctx) return null;
-        const wantHDR = matchMedia('(dynamic-range:high)').matches;
-        let format = navigator.gpu.getPreferredCanvasFormat(), hdr = 1;
-        if (wantHDR) {
-            try { ctx.configure({ device, format: 'rgba16float', alphaMode: 'premultiplied', toneMapping: { mode: 'extended' } }); format = 'rgba16float'; hdr = 2; } catch (_) {}
-        }
-        if (hdr === 1) ctx.configure({ device, format, alphaMode: 'premultiplied' });
-        const mod = device.createShaderModule({ code: WGSL });
-        const info = await mod.getCompilationInfo();
-        if (info.messages.some(m => m.type === 'error')) throw new Error(info.messages.map(m => m.message).join('\n'));
-        const pipe = await device.createRenderPipelineAsync({
-            layout: 'auto', vertex: { module: mod, entryPoint: 'vs' },
-            fragment: { module: mod, entryPoint: 'fs', targets: [{ format }] }, primitive: { topology: 'triangle-list' }
-        });
-        const smp = device.createSampler({ magFilter: 'linear', minFilter: 'linear' });
-        const ub = device.createBuffer({ size: 64, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
-        let tA = null, tB = null, bg = null;
-        const b = {
-            kind: 'webgpu' + (hdr > 1 ? '-hdr' : ''), hdr, canvas: cv, adapter, device, lost: false, onlost: null,
-            resize(w, h) { cv.width = w; cv.height = h; },
-            upload(a, c, w, h) {
-                if (tA) tA.destroy(); if (tB) tB.destroy();
-                const mk = () => device.createTexture({ size: [w, h], format: 'rgba8unorm', usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT });
-                tA = mk(); tB = mk();
-                // пиксели через CPU (getImageData → writeTexture): не зависит от общего доступа 2D-канваса к GPU
-                const put = (cv, tex) => {
-                    const im = cv.getContext('2d').getImageData(0, 0, w, h), d = im.data;
-                    for (let i = 0; i < d.length; i += 4) { const al = d[i + 3]; if (al < 255) { d[i] = d[i] * al / 255; d[i + 1] = d[i + 1] * al / 255; d[i + 2] = d[i + 2] * al / 255; } }
-                    device.queue.writeTexture({ texture: tex }, d, { bytesPerRow: w * 4 }, [w, h]);
-                };
-                put(a, tA); put(c, tB);
-                bg = device.createBindGroup({ layout: pipe.getBindGroupLayout(0), entries: [
-                    { binding: 0, resource: { buffer: ub } }, { binding: 1, resource: smp },
-                    { binding: 2, resource: tA.createView() }, { binding: 3, resource: tB.createView() }] });
-            },
-            draw(u) {
-                if (!bg) return;
-                device.queue.writeBuffer(ub, 0, new Float32Array(u));
-                const enc = device.createCommandEncoder();
-                const pass = enc.beginRenderPass({ colorAttachments: [{ view: ctx.getCurrentTexture().createView(), clearValue: { r: 0, g: 0, b: 0, a: 0 }, loadOp: 'clear', storeOp: 'store' }] });
-                pass.setPipeline(pipe); pass.setBindGroup(0, bg); pass.draw(3); pass.end();
-                device.queue.submit([enc.finish()]);
-            }
-        };
-        device.lost.then(info => { console.warn('[liquid-glass] device lost', info && info.reason, info && info.message); b.lost = true; if (b.onlost) b.onlost(); });
-        return b;
-    }
-
-    function initGL() {
-        const cv = document.createElement('canvas');
-        const opt = { alpha: true, premultipliedAlpha: true, antialias: false, depth: false, stencil: false, powerPreference: 'low-power' };
-        let gl = cv.getContext('webgl2', opt); const v2 = !!gl;
-        if (!gl) gl = cv.getContext('webgl', opt);
-        if (!gl) return null;
-        const sh = (t, s) => { const o = gl.createShader(t); gl.shaderSource(o, s); gl.compileShader(o); if (!gl.getShaderParameter(o, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(o)); return o; };
-        const pr = gl.createProgram();
-        gl.attachShader(pr, sh(gl.VERTEX_SHADER, GLSL_V)); gl.attachShader(pr, sh(gl.FRAGMENT_SHADER, GLSL_F));
-        gl.linkProgram(pr); if (!gl.getProgramParameter(pr, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(pr));
-        gl.useProgram(pr);
-        const buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
-        const loc = gl.getAttribLocation(pr, 'aP'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
-        const uA = gl.getUniformLocation(pr, 'uA'), uB = gl.getUniformLocation(pr, 'uB'), uC = gl.getUniformLocation(pr, 'uC');
-        gl.uniform1i(gl.getUniformLocation(pr, 'tA'), 0); gl.uniform1i(gl.getUniformLocation(pr, 'tB'), 1);
-        const mk = () => { const t = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, t);
-            [[gl.TEXTURE_MIN_FILTER, gl.LINEAR], [gl.TEXTURE_MAG_FILTER, gl.LINEAR], [gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE], [gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE]].forEach(([k, val]) => gl.texParameteri(gl.TEXTURE_2D, k, val)); return t; };
-        const tA = mk(), tB = mk();
-        // HDR: полноценный расширенный диапазон только если есть и float16-буфер, и API включения HDR у канваса
-        let hdrBuf = false, hdr = 1;
-        if (v2 && matchMedia('(dynamic-range:high)').matches && gl.drawingBufferStorage && cv.configureHighDynamicRange) {
-            try { gl.getExtension('EXT_color_buffer_half_float'); gl.getExtension('EXT_color_buffer_float'); cv.configureHighDynamicRange({ mode: 'extended' }); hdrBuf = true; hdr = 2; } catch (_) { hdrBuf = false; hdr = 1; }
-        }
-        const b = {
-            kind: (v2 ? 'webgl2' : 'webgl') + (hdr > 1 ? '-hdr' : ''), hdr, canvas: cv, lost: false, onlost: null,
-            resize(w, h) {
-                cv.width = w; cv.height = h;
-                if (hdrBuf) { try { gl.drawingBufferStorage(gl.RGBA16F, w, h); } catch (_) { hdrBuf = false; b.hdr = 1; } }
-                gl.viewport(0, 0, w, h);
-            },
-            upload(a, c) {
-                gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true); gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
-                gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, tA); gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, a);
-                gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, tB); gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, c);
-            },
-            draw(u) {
-                gl.uniform4f(uA, u[0], u[1], u[2], u[3]); gl.uniform4f(uB, u[4], u[5], u[6], u[7]); gl.uniform4f(uC, u[8], u[9], u[10], u[11]);
-                gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT); gl.drawArrays(gl.TRIANGLES, 0, 3);
-            }
-        };
-        cv.addEventListener('webglcontextlost', e => { e.preventDefault(); b.lost = true; if (b.onlost) b.onlost(); });
-        return b;
-    }
-
-    // Текстуры: A — дорожка с приглушёнными подписями, B — то, что видно через линзу (светлее, белые подписи)
-    function paint(cw, ch, s) {
-        [cA, cB].forEach((cv, k) => {
-            cv.width = cw; cv.height = ch;
-            const g = cv.getContext('2d'); g.clearRect(0, 0, cw, ch);
-            const tx0 = PADX * s, ty = PADY * s, tw = sw.offsetWidth * s, th = sw.offsetHeight * s, rr = th / 2;
-            const path = () => { g.beginPath(); g.moveTo(tx0 + rr, ty); g.lineTo(tx0 + tw - rr, ty); g.arc(tx0 + tw - rr, ty + rr, rr, -Math.PI / 2, Math.PI / 2); g.lineTo(tx0 + rr, ty + th); g.arc(tx0 + rr, ty + rr, rr, Math.PI / 2, Math.PI * 1.5); g.closePath(); };
-            if (k === 0) {
-                path(); g.fillStyle = '#161a25'; g.fill();
-                g.save(); path(); g.clip();
-                let gr = g.createLinearGradient(0, ty, 0, ty + 7 * s); gr.addColorStop(0, 'rgba(0,0,0,.55)'); gr.addColorStop(1, 'rgba(0,0,0,0)');
-                g.fillStyle = gr; g.fillRect(tx0, ty, tw, 7 * s);
-                gr = g.createLinearGradient(0, ty + th - 3 * s, 0, ty + th); gr.addColorStop(0, 'rgba(255,255,255,0)'); gr.addColorStop(1, 'rgba(255,255,255,.07)');
-                g.fillStyle = gr; g.fillRect(tx0, ty + th - 3 * s, tw, 3 * s);
-                g.restore();
-                path(); g.lineWidth = s; g.strokeStyle = 'rgba(255,255,255,.07)'; g.stroke();
-            } else {
-                const gr = g.createLinearGradient(0, ty, 0, ty + th); gr.addColorStop(0, '#34405d'); gr.addColorStop(1, '#262f48');
-                g.fillStyle = gr; g.fillRect(0, 0, cw, ch);
-            }
-            g.textAlign = 'center'; g.textBaseline = 'middle'; g.direction = 'ltr'; g.fillStyle = k ? '#ffffff' : '#9aa3b8';
-            btns.forEach(b => {
-                const cs = getComputedStyle(b);
-                g.font = `${cs.fontWeight} ${parseFloat(cs.fontSize) * s}px ${cs.fontFamily}`;
-                g.fillText(b.textContent, (PADX + sw.clientLeft + b.offsetLeft + b.offsetWidth / 2) * s, (PADY + sw.clientTop + b.offsetTop + b.offsetHeight / 2) * s + s * .5);
-            });
-        });
-    }
-
-    function gLayout() {
-        if (!be || !gcv) return;
-        const s = Math.min(window.devicePixelRatio || 1, 3);
-        const cwCss = sw.offsetWidth + 2 * PADX, chCss = sw.offsetHeight + 2 * PADY;
-        ox = PADX + sw.clientLeft; oy = PADY + sw.clientTop; gs = s;
-        const f = btns.map(b => { const c = getComputedStyle(b); return c.fontSize + c.fontWeight + c.fontFamily + b.offsetLeft + '/' + b.offsetWidth; }).join('|');
-        const sg = [cwCss, chCss, s, f].join(';');
-        if (sg === gsig) return; gsig = sg;
-        const cw = Math.round(cwCss * s), ch = Math.round(chCss * s);
-        gcv.style.left = -(PADX + sw.clientLeft) + 'px'; gcv.style.top = -(PADY + sw.clientTop) + 'px';
-        gcv.style.width = cwCss + 'px'; gcv.style.height = chCss + 'px';
-        be.resize(cw, ch); paint(cw, ch, s); be.upload(cA, cB, cw, ch);
-        apply(0);
-    }
-
-    // ================= геометрия и физика =================
-    function measure() {
-        const b0 = btns[0], bw = b0.offsetWidth, bh = b0.offsetHeight;
-        if (!bw || !bh) return false;
-        centers = btns.map(b => b.offsetLeft + b.offsetWidth / 2);
-        W = bw; H = bh; y = b0.offsetTop;
-        thumb.style.width = W + 'px'; thumb.style.height = H + 'px';
-        row.style.width = sw.clientWidth + 'px'; row.style.height = sw.clientHeight + 'px';
-        btns.forEach((b, i) => {
-            const s = spans[i], cs = getComputedStyle(b);
-            s.textContent = b.textContent;
-            s.style.cssText = `left:${b.offsetLeft}px;top:${b.offsetTop}px;width:${b.offsetWidth}px;height:${b.offsetHeight}px;font-size:${cs.fontSize};font-weight:${cs.fontWeight};font-family:${cs.fontFamily};letter-spacing:${cs.letterSpacing}`;
-        });
-        gLayout();
-        return true;
-    }
-
-    function apply(st) {
-        const tl = x - W / 2;
-        if (be && !be.lost && gsig) {
-            const sx = ps * (1 + st), sy = ps * (1 - st * .5), press = clamp((ps - 1) / .15, 0, 1);
-            be.draw([gcv.width, gcv.height, gs, be.hdr, (ox + x) * gs, (oy + y + H / 2) * gs, (W / 2) * sx * gs, (H / 2) * sy * gs, press, clamp(v / 1500, -1, 1), 0, 0]);
-            return;
-        }
-        thumb.style.transform = `translate3d(${tl}px,${y}px,0) scale(${ps * (1 + st)},${ps * (1 - st * .5)})`;
-        row.style.transform = `translate3d(${-tl}px,${-y}px,0)`;
-    }
-    function frame(t) {
-        const dt = Math.min(.032, (t - last) / 1000 || .016); last = t;
-        const k = grab ? 900 : 260, c = grab ? 52 : 23;
-        v += ((tx - x) * k - v * c) * dt; x += v * dt;
-        ps += (pt - ps) * Math.min(1, dt * 14);
-        apply(Math.min(Math.abs(v) / 4500, .12));
-        if (Math.abs(tx - x) < .05 && Math.abs(v) < .5 && Math.abs(pt - ps) < .002) { x = tx; v = 0; ps = pt; apply(0); raf = 0; return; }
-        raf = requestAnimationFrame(frame);
-    }
-    function kick() {
-        if (reduce) { x = tx; v = 0; ps = pt; apply(0); return; }
-        if (!raf) { last = performance.now(); raf = requestAnimationFrame(frame); }
-    }
-    function sync(animate) {
-        if (!measure()) return;
-        const i = codes.indexOf(currentLang); if (i < 0) return;
-        btns.forEach((b, j) => b.setAttribute('aria-checked', j === i ? 'true' : 'false'));
-        if (grab) return;
-        tx = centers[i];
-        if (!placed || !animate) { x = tx; v = 0; placed = true; apply(0); } else kick();
-    }
-
-    const idxAt = px => { let bi = 0, bd = 1e9; centers.forEach((c, i) => { const d = Math.abs(c - px); if (d < bd) { bd = d; bi = i; } }); return bi; };
-    const rubber = p => { const lo = Math.min(...centers), hi = Math.max(...centers); return p < lo ? lo - (lo - p) * .25 : p > hi ? hi + (p - hi) * .25 : p; };
-    const localX = e => e.clientX - sw.getBoundingClientRect().left - sw.clientLeft;
-
-    sw.addEventListener('pointerdown', e => {
-        if (e.pointerType === 'mouse' && e.button !== 0) return;
-        if (!measure()) return;
-        const px = localX(e);
-        grab = true; startPx = px;
-        off = Math.abs(px - x) <= W / 2 ? px - x : 0;
-        tx = rubber(px - off); pt = 1.15;
-        sw.classList.add('grab');
-        try { sw.setPointerCapture(e.pointerId); } catch (_) {}
-        tick(); kick();
+    const mount = create => { try { window.langGlass = create(nav, {}); } catch (e) { console.warn('[liquid-glass]', e); } };
+    import('/aquarium_generator/js/liquid-glass-nav.js').then(m => mount(m.createLiquidGlassNav)).catch(() => {
+        const s = document.createElement('script');
+        s.src = '/aquarium_generator/js/liquid-glass-nav_iife.js';
+        s.onload = () => mount(window.LiquidGlassNav.create);
+        s.onerror = () => console.warn('[liquid-glass] модуль не найден — показан запасной переключатель');
+        document.head.appendChild(s);
     });
-    sw.addEventListener('pointermove', e => {
-        if (!grab) return;
-        const prev = idxAt(tx); tx = rubber(localX(e) - off);
-        if (idxAt(tx) !== prev) tick();
-        kick();
-    });
-    function release(cancel) {
-        if (!grab) return;
-        grab = false; pt = 1; sw.classList.remove('grab');
-        const i = cancel ? codes.indexOf(currentLang) : idxAt(tx);
-        tx = centers[i]; kick();
-        if (codes[i] !== currentLang) setLanguage(codes[i]);
-    }
-    sw.addEventListener('pointerup', () => release(false));
-    sw.addEventListener('pointercancel', () => release(true));
-    sw.addEventListener('lostpointercapture', () => release(false));
-    btns.forEach((b, i) => b.addEventListener('click', e => { if (e.detail === 0 && codes[i] !== currentLang) setLanguage(codes[i]); }));
-
-    const _setLanguage = window.setLanguage;
-    window.setLanguage = function (l) { const r = _setLanguage.apply(this, arguments); sync(true); return r; };
-
-    new ResizeObserver(() => sync(false)).observe(sw);
-    if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { gsig = ''; sync(false); });
-    addEventListener('load', () => sync(false));
-    addEventListener('resize', () => sync(false));
-    sync(false);
-
-    // ================= запуск GPU: WebGPU → WebGL → остаётся CSS =================
-    function detach() {
-        sw.classList.remove('gpu'); if (gcv && gcv.parentNode) gcv.remove();
-        be = null; gcv = null; gsig = ''; delete sw.dataset.glass;
-    }
-    function attach(b, next) {
-        be = b; gcv = b.canvas; gcv.className = 'lg-gpu'; gcv.setAttribute('aria-hidden', 'true');
-        sw.appendChild(gcv); sw.classList.add('gpu'); sw.dataset.glass = b.kind;
-        b.onlost = () => { detach(); if (next) start(next); else { sync(false); } };   // потеряли WebGPU → пробуем WebGL; потеряли WebGL → CSS
-        gsig = ''; if (measure()) apply(0);
-    }
-    async function start(inits) {
-        for (let i = 0; i < inits.length; i++) {
-            try { const b = await inits[i](); if (b) { attach(b, inits.slice(i + 1).length ? inits.slice(i + 1) : null); return; } }
-            catch (e) { console.warn('[liquid-glass]', e); }
-        }
-        sync(false);
-    }
-    start([initWebGPU, async () => initGL()]);
 })();
 </script>
 </body>
